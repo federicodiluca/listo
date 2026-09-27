@@ -36,12 +36,14 @@ Stack: SvelteKit (Svelte 5) con `adapter-static`, TypeScript, Tailwind CSS, Vite
 
 ### Credenziali Google
 
-Senza credenziali l'app funziona in sola modalità locale. Per le funzioni Google, copiare
-`.env.example` in `.env` e compilarlo con i dati di un progetto Google Cloud:
+Senza credenziali l'app funziona in sola modalità locale. Per le funzioni Google serve un
+progetto Google Cloud con le API **Google Sheets**, **Google Drive** e **Google Picker**
+attive; poi si copia `.env.example` in `.env` e lo si compila con:
 
 - **OAuth Client ID** di tipo "Applicazione web", con le origini JavaScript autorizzate
   (`http://localhost:5173` per lo sviluppo, il dominio di produzione);
-- **API key** limitata ai referrer HTTP dell'app e alla sola Google Picker API;
+- **API key** limitata ai siti dell'app **e a `https://docs.google.com/*`** (il Picker gira
+  in un iframe servito da lì) e alle sole API Google Picker e Google Drive;
 - **numero del progetto** (App ID), usato dal Picker.
 
 Sono identificativi pubblici, non segreti: finiscono comunque nel codice che gira nel
