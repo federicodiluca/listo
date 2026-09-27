@@ -127,3 +127,10 @@ export function matchByName(items: readonly Item[], text: string, limit = 5): Na
 		.slice(0, limit)
 		.map((item) => ({ item, archived: item.archivedAt !== null }));
 }
+
+/** "3 porzioni", "0,5 kg", "2"; empty when no quantity is set. */
+export function formatQuantity(quantity: number | null, unit: string): string {
+	if (quantity === null) return '';
+	const number = quantity.toLocaleString('it-IT', { maximumFractionDigits: 2 });
+	return unit ? `${number} ${unit}` : number;
+}

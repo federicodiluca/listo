@@ -26,7 +26,8 @@ export async function createList(
 	const list: List = {
 		id: crypto.randomUUID(),
 		name: cleanName(name),
-		sort,
+		// plain copy: callers may pass Svelte $state proxies, which IndexedDB can't clone
+		sort: { field: sort.field, direction: sort.direction },
 		createdAt: timestamp,
 		updatedAt: timestamp
 	};
@@ -43,7 +44,10 @@ export async function renameList(id: string, name: string): Promise<void> {
 }
 
 export async function setListSort(id: string, sort: ListSort): Promise<void> {
-	await db.lists.update(id, { sort, updatedAt: now() });
+	await db.lists.update(id, {
+		sort: { field: sort.field, direction: sort.direction },
+		updatedAt: now()
+	});
 }
 
 /** Deletes a list with everything in it. */

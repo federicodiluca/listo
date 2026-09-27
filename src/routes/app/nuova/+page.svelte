@@ -43,7 +43,7 @@
 	<title>Nuova lista — Listo</title>
 </svelte:head>
 
-<AppHeader title="Nuova lista" back={resolve('/app')} />
+<AppHeader title="Nuova lista" back={resolve('/app/liste')} />
 
 <main class="mx-auto max-w-xl px-4 py-6">
 	{#if !template}

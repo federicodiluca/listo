@@ -75,6 +75,14 @@ describe('lists', () => {
 	});
 });
 
+describe('proxies', () => {
+	it('stores plain copies of proxied input (e.g. Svelte $state)', async () => {
+		const sort = new Proxy({ field: 'name', direction: 'desc' } as const, {});
+		const id = await createList('L', [], sort);
+		expect((await db.lists.get(id))?.sort).toEqual({ field: 'name', direction: 'desc' });
+	});
+});
+
 describe('categories', () => {
 	it('appends new categories at the end', async () => {
 		const listId = await createList('L', [{ emoji: '🥩', name: 'Carne', color: 'rosso' }]);

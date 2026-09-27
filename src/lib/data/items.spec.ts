@@ -6,6 +6,7 @@ import {
 	addItem,
 	archiveItem,
 	deleteItem,
+	formatQuantity,
 	getItem,
 	getItems,
 	matchByName,
@@ -39,6 +40,15 @@ describe('parseQuantity', () => {
 	it('rejects nonsense and negatives', () => {
 		expect(() => parseQuantity('tanti')).toThrow();
 		expect(() => parseQuantity('-1')).toThrow();
+	});
+});
+
+describe('formatQuantity', () => {
+	it('uses the Italian decimal comma and the unit', () => {
+		expect(formatQuantity(3, 'porzioni')).toBe('3 porzioni');
+		expect(formatQuantity(0.5, 'kg')).toBe('0,5 kg');
+		expect(formatQuantity(2, '')).toBe('2');
+		expect(formatQuantity(null, 'g')).toBe('');
 	});
 });
 
