@@ -41,7 +41,7 @@ Senza credenziali l'app funziona in sola modalità locale. Per le funzioni Googl
 
 - **OAuth Client ID** di tipo "Applicazione web", con le origini JavaScript autorizzate
   (`http://localhost:5173` per lo sviluppo, il dominio di produzione);
-- **API key** limitata ai referrer HTTP dell'app e alle API Google Sheets e Google Picker;
+- **API key** limitata ai referrer HTTP dell'app e alla sola Google Picker API;
 - **numero del progetto** (App ID), usato dal Picker.
 
 Sono identificativi pubblici, non segreti: finiscono comunque nel codice che gira nel
