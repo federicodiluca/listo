@@ -2,6 +2,7 @@
 	"name": "listo",
 	"private": true,
 	"license": "MIT",
+	"author": "Federico Di Luca <listo@federicodiluca.com> (https://federicodiluca.com/)",
 	"version": "0.0.1",
 	"type": "module",
 	"scripts": {

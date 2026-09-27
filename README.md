@@ -52,3 +52,9 @@ browser.
 GitHub Actions esegue lint, controllo dei tipi e test a ogni push e pull request, e
 pubblica su GitHub Pages a ogni push su `main`. Le credenziali Google sono variabili del
 repository (`PUBLIC_GOOGLE_CLIENT_ID`, `PUBLIC_GOOGLE_API_KEY`, `PUBLIC_GOOGLE_APP_ID`).
+
+## Autore
+
+Listo è un progetto di [Federico Di Luca](https://federicodiluca.com/): scopri gli
+[altri progetti](https://federicodiluca.com/progetti/). Per contatti:
+[listo@federicodiluca.com](mailto:listo@federicodiluca.com).
