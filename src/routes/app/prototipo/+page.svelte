@@ -4,7 +4,7 @@
 -->
 <script lang="ts">
 	import { requestAccessToken, revokeAccessToken, type AccessToken } from '$lib/google/auth';
-	import { isGoogleConfigured } from '$lib/google/config';
+	import { isGoogleConfigured, isPickerConfigured } from '$lib/google/config';
 	import { pickSpreadsheet } from '$lib/google/picker';
 	import { rowsToRecords } from '$lib/google/rows';
 	import {
@@ -163,7 +163,9 @@
 				<button class={button} disabled={busy || !token} onclick={create}
 					>Crea foglio di prova</button
 				>
-				<button class={button} disabled={busy || !token} onclick={open}>Apri da Drive</button>
+				<button class={button} disabled={busy || !token || !isPickerConfigured} onclick={open}
+					>Apri da Drive</button
+				>
 			</div>
 		</section>
 

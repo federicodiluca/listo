@@ -13,6 +13,10 @@ export const googleConfig = {
 	appId: env.PUBLIC_GOOGLE_APP_ID ?? ''
 };
 
-export const isGoogleConfigured = Boolean(
-	googleConfig.clientId && googleConfig.apiKey && googleConfig.appId
+/** Login and Sheets access only need the OAuth client. */
+export const isGoogleConfigured = Boolean(googleConfig.clientId);
+
+/** The Picker (opening existing or shared files) also needs an API key and the app id. */
+export const isPickerConfigured = Boolean(
+	isGoogleConfigured && googleConfig.apiKey && googleConfig.appId
 );
