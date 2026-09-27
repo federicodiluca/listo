@@ -4,8 +4,6 @@
 // Globals defined by Google's scripts, loaded at runtime (see $lib/google).
 // TypeScript 6 no longer picks up @types packages automatically.
 /// <reference types="google.accounts" />
-/// <reference types="google.picker" />
-/// <reference types="gapi" />
 
 declare global {
 	namespace App {

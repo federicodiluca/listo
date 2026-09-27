@@ -4,7 +4,7 @@ const API = 'https://sheets.googleapis.com/v4/spreadsheets';
 
 export type Spreadsheet = { id: string; url: string; title: string };
 
-export class SheetsError extends Error {
+export class GoogleApiError extends Error {
 	constructor(
 		readonly status: number,
 		message: string
@@ -24,7 +24,7 @@ async function call<T>(token: AccessToken, url: string, init: RequestInit = {}):
 	});
 	if (!response.ok) {
 		const body = await response.json().catch(() => undefined);
-		throw new SheetsError(response.status, body?.error?.message ?? response.statusText);
+		throw new GoogleApiError(response.status, body?.error?.message ?? response.statusText);
 	}
 	return response.json();
 }

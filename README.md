@@ -13,9 +13,9 @@ non è un inventario fisso: ognuno crea le proprie liste e le proprie categorie.
 - **Nessun server, nessun dato raccolto.** L'app è un sito statico. I dati restano sul
   dispositivo (IndexedDB) oppure, se si sceglie di sincronizzare, in un foglio Google
   nel Drive di chi la usa.
-- **Condivisione tramite Google Drive.** Ogni lista è un foglio Google: condividerla
-  significa condividere il file. L'app chiede solo il permesso `drive.file`, quindi
-  vede esclusivamente i fogli che crea o che l'utente apre esplicitamente.
+- **Sincronizzazione facoltativa con Google Drive.** Ogni lista può avere una copia in un
+  foglio Google, come backup e per usarla da più dispositivi. L'app chiede solo il
+  permesso `drive.file`, quindi vede esclusivamente i fogli che ha creato lei.
 - **Landing pre-renderizzata, app lato client.** Le pagine pubbliche sono HTML statico
   indicizzabile; l'area `/app` gira solo nel browser ed è esclusa dall'indicizzazione.
 
@@ -37,23 +37,19 @@ Stack: SvelteKit (Svelte 5) con `adapter-static`, TypeScript, Tailwind CSS, Vite
 ### Credenziali Google
 
 Senza credenziali l'app funziona in sola modalità locale. Per le funzioni Google serve un
-progetto Google Cloud con le API **Google Sheets**, **Google Drive** e **Google Picker**
-attive; poi si copia `.env.example` in `.env` e lo si compila con:
+progetto Google Cloud con le API **Google Sheets** e **Google Drive** attive e un **OAuth
+Client ID** di tipo "Applicazione web", con le origini JavaScript autorizzate
+(`http://localhost:5173` per lo sviluppo e il dominio di produzione). Si copia poi
+`.env.example` in `.env` e si inserisce il Client ID.
 
-- **OAuth Client ID** di tipo "Applicazione web", con le origini JavaScript autorizzate
-  (`http://localhost:5173` per lo sviluppo, il dominio di produzione);
-- **API key** limitata ai siti dell'app **e a `https://docs.google.com/*`** (il Picker gira
-  in un iframe servito da lì) e alle sole API Google Picker e Google Drive;
-- **numero del progetto** (App ID), usato dal Picker.
-
-Sono identificativi pubblici, non segreti: finiscono comunque nel codice che gira nel
-browser.
+Il Client ID è un identificativo pubblico, non un segreto: finisce comunque nel codice che
+gira nel browser.
 
 ## Deploy
 
 GitHub Actions esegue lint, controllo dei tipi e test a ogni push e pull request, e
-pubblica su GitHub Pages a ogni push su `main`. Le credenziali Google sono variabili del
-repository (`PUBLIC_GOOGLE_CLIENT_ID`, `PUBLIC_GOOGLE_API_KEY`, `PUBLIC_GOOGLE_APP_ID`).
+pubblica su GitHub Pages a ogni push su `main`. Il Client ID Google è una variabile del
+repository (`PUBLIC_GOOGLE_CLIENT_ID`).
 
 ## Autore
 

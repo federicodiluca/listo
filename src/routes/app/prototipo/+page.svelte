@@ -4,8 +4,8 @@
 -->
 <script lang="ts">
 	import { requestAccessToken, revokeAccessToken, type AccessToken } from '$lib/google/auth';
-	import { isGoogleConfigured, isPickerConfigured } from '$lib/google/config';
-	import { pickSpreadsheet } from '$lib/google/picker';
+	import { isGoogleConfigured } from '$lib/google/config';
+	import { listSpreadsheets } from '$lib/google/drive';
 	import { rowsToRecords } from '$lib/google/rows';
 	import {
 		appendRows,
@@ -22,6 +22,7 @@
 
 	let token = $state<AccessToken>();
 	let sheet = $state<Spreadsheet>();
+	let found = $state<Spreadsheet[]>([]);
 	let records = $state<Record<string, string>[]>([]);
 	let itemName = $state('Minestrone');
 	let busy = $state(false);
@@ -92,15 +93,19 @@
 			records = [];
 		});
 
-	const open = () =>
-		run('Apertura da Drive', async () => {
+	const find = () =>
+		run('Ricerca fogli su Drive', async () => {
 			if (!token) return;
-			const id = await pickSpreadsheet(token, (action) => write(`Picker: evento "${action}"`));
-			write(`Picker: file scelto ${id ?? '(nessuno)'}`);
-			if (!id) return;
-			sheet = await getSpreadsheet(token, id);
-			rememberSheet(id);
-			records = rowsToRecords(await readRows(token, id, 'elementi'));
+			found = await listSpreadsheets(token);
+			write(`Trovati ${found.length} fogli`);
+		});
+
+	const use = (chosen: Spreadsheet) =>
+		run(`Apertura di "${chosen.title}"`, async () => {
+			if (!token) return;
+			sheet = chosen;
+			rememberSheet(chosen.id);
+			records = rowsToRecords(await readRows(token, chosen.id, 'elementi'));
 		});
 
 	const add = () =>
@@ -126,7 +131,7 @@
 	<header>
 		<h1 class="text-2xl font-bold">Prototipo Google Fogli</h1>
 		<p class="mt-1 text-sm opacity-70">
-			Verifica accesso, creazione, scrittura, lettura e apertura di fogli condivisi.
+			Verifica accesso, creazione, scrittura, lettura e ricerca dei fogli creati da Listo.
 		</p>
 	</header>
 
@@ -164,10 +169,22 @@
 				<button class={button} disabled={busy || !token} onclick={create}
 					>Crea foglio di prova</button
 				>
-				<button class={button} disabled={busy || !token || !isPickerConfigured} onclick={open}
-					>Apri da Drive</button
-				>
+				<button class={button} disabled={busy || !token} onclick={find}>Trova i miei fogli</button>
 			</div>
+			{#if found.length}
+				<ul class="divide-y rounded-lg border text-sm">
+					{#each found as candidate (candidate.id)}
+						<li class="flex items-center justify-between gap-2 px-3 py-2">
+							<span class="truncate">{candidate.title}</span>
+							<button
+								class="rounded-lg border px-3 py-1 disabled:opacity-40"
+								disabled={busy || candidate.id === sheet?.id}
+								onclick={() => use(candidate)}>Usa</button
+							>
+						</li>
+					{/each}
+				</ul>
+			{/if}
 		</section>
 
 		<section class="flex flex-col gap-2">

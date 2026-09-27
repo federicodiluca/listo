@@ -2,7 +2,7 @@ import { googleConfig } from './config';
 import { loadScript } from './load-script';
 
 /**
- * Only files this app creates, or that the user explicitly opens through the Picker.
+ * Only files this app creates (or that the user explicitly opens with it).
  * It is a "non-sensitive" scope: no Google verification needed, and the app can't
  * see anything else in the user's Drive.
  */
