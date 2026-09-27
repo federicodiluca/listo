@@ -1,0 +1,2 @@
+# Always LF, matching Prettier, regardless of the local core.autocrlf setting
+* text=auto eol=lf
