@@ -95,7 +95,8 @@
 	const open = () =>
 		run('Apertura da Drive', async () => {
 			if (!token) return;
-			const id = await pickSpreadsheet(token);
+			const id = await pickSpreadsheet(token, (action) => write(`Picker: evento "${action}"`));
+			write(`Picker: file scelto ${id ?? '(nessuno)'}`);
 			if (!id) return;
 			sheet = await getSpreadsheet(token, id);
 			rememberSheet(id);
