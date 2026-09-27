@@ -7,6 +7,7 @@
 	import AppHeader from '$lib/ui/AppHeader.svelte';
 	import CategoryChip from '$lib/ui/CategoryChip.svelte';
 	import CategoryRow from '$lib/ui/CategoryRow.svelte';
+	import Icon from '$lib/ui/Icon.svelte';
 	import NewCategoryForm from '$lib/ui/NewCategoryForm.svelte';
 
 	let template = $state<ListTemplate>();
@@ -55,7 +56,9 @@
 						class="flex h-full w-full flex-col items-start gap-2 rounded-2xl border border-line bg-surface p-4 text-left"
 						onclick={() => choose(candidate)}
 					>
-						<span class="text-3xl" aria-hidden="true">{candidate.emoji}</span>
+						<span class="grid size-11 place-items-center rounded-xl bg-bg text-accent">
+							<Icon name={candidate.icon} size={24} />
+						</span>
 						<span class="font-semibold">{candidate.name}</span>
 						<span class="text-sm text-muted">{candidate.description}</span>
 						{#if candidate.categories.length}

@@ -1,8 +1,9 @@
+import type { IconName } from '$lib/ui/Icon.svelte';
 import type { CategoryDraft } from './types';
 
 export type ListTemplate = {
 	id: string;
-	emoji: string;
+	icon: IconName;
 	name: string;
 	description: string;
 	categories: CategoryDraft[];
@@ -12,7 +13,7 @@ export type ListTemplate = {
 export const templates: ListTemplate[] = [
 	{
 		id: 'congelatore',
-		emoji: '🧊',
+		icon: 'snowflake',
 		name: 'Congelatore',
 		description: 'Cosa hai in freezer e da quando.',
 		categories: [
@@ -26,7 +27,7 @@ export const templates: ListTemplate[] = [
 	},
 	{
 		id: 'dispensa',
-		emoji: '🥫',
+		icon: 'jar',
 		name: 'Dispensa',
 		description: 'Scorte a lunga conservazione.',
 		categories: [
@@ -40,7 +41,7 @@ export const templates: ListTemplate[] = [
 	},
 	{
 		id: 'spesa',
-		emoji: '🛒',
+		icon: 'cart',
 		name: 'Lista della spesa',
 		description: 'Cosa comprare, diviso per reparto.',
 		categories: [
@@ -53,7 +54,7 @@ export const templates: ListTemplate[] = [
 	},
 	{
 		id: 'vuota',
-		emoji: '✏️',
+		icon: 'blank',
 		name: 'Da zero',
 		description: 'Nessuna categoria: le crei tu.',
 		categories: []

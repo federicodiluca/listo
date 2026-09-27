@@ -13,6 +13,7 @@
 
 <script lang="ts">
 	import { firstGrapheme } from '$lib/data/text';
+	import Icon from './Icon.svelte';
 
 	let { value, onpick }: { value: string; onpick: (emoji: string) => void } = $props();
 
@@ -33,7 +34,7 @@
 	class="grid size-11 shrink-0 place-items-center rounded-xl border border-line text-xl"
 	aria-label={value ? `Emoji: ${value}. Cambia emoji` : 'Aggiungi emoji'}
 >
-	{#if value}{value}{:else}<span class="text-base text-muted" aria-hidden="true">☺︎</span>{/if}
+	{#if value}{value}{:else}<span class="text-muted"><Icon name="smile" /></span>{/if}
 </button>
 
 <div popover id="{id}-emoji" class="sheet" bind:this={sheet}>

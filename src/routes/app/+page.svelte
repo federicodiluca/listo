@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { resolve } from '$app/paths';
+	import { asset, resolve } from '$app/paths';
 	import { live } from '$lib/data/live.svelte';
 	import { getListSummaries } from '$lib/data/lists';
 	import AppHeader from '$lib/ui/AppHeader.svelte';
@@ -18,7 +18,7 @@
 <main class="mx-auto max-w-xl px-4 py-6">
 	{#if summaries.current?.length === 0}
 		<section class="mt-10 text-center">
-			<p class="text-5xl" aria-hidden="true">🏷️</p>
+			<img src={asset('/favicon.svg')} alt="" class="mx-auto size-16" />
 			<h2 class="mt-4 text-xl font-semibold">Nessuna lista, per ora</h2>
 			<p class="mx-auto mt-2 max-w-sm text-muted">
 				Crea una lista e scegli le sue categorie: ogni elemento potrà stare in più categorie
