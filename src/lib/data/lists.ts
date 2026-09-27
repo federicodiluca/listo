@@ -111,3 +111,25 @@ export async function deleteCategory(id: string): Promise<void> {
 		);
 	});
 }
+
+export type ListSummary = { list: List; categories: Category[] };
+
+/** Every list, oldest first, each with its categories in order. */
+export async function getListSummaries(): Promise<ListSummary[]> {
+	const [lists, categories] = await Promise.all([
+		db.lists.orderBy('createdAt').toArray(),
+		db.categories.toArray()
+	]);
+	return lists.map((list) => ({
+		list,
+		categories: categories
+			.filter((c) => c.listId === list.id)
+			.sort((a, b) => a.position - b.position)
+	}));
+}
+
+/** A list with its categories, or `null` if it doesn't exist (e.g. deleted elsewhere). */
+export async function getListSummary(id: string): Promise<ListSummary | null> {
+	const list = await db.lists.get(id);
+	return list ? { list, categories: await getCategories(id) } : null;
+}

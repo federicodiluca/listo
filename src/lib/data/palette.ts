@@ -34,3 +34,8 @@ export function isColorName(value: string): value is ColorName {
 export function colorValue(name: string): string {
 	return isColorName(name) ? palette[name].value : palette.grigio.value;
 }
+
+/** First palette color not already in use, so new categories are told apart by default. */
+export function nextColor(used: readonly string[]): ColorName {
+	return colorNames.find((c) => !used.includes(c)) ?? colorNames[used.length % colorNames.length];
+}

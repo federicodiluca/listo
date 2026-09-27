@@ -1,1 +1,60 @@
 @import 'tailwindcss';
+
+/*
+ * Design tokens. Tailwind turns each --color-* into utilities (bg-surface, text-ink…);
+ * dark mode only redefines the variables, so components never need `dark:` variants.
+ * Brand: near-black + orange, from the logo.
+ */
+@theme {
+	--color-bg: #faf8f5;
+	--color-surface: #ffffff;
+	--color-ink: #1c1a1f;
+	--color-muted: #6b6770;
+	--color-line: #e7e3dd;
+	--color-accent: #ff7a1a;
+	/* primary buttons: dark on light theme, orange on dark theme */
+	--color-primary: #17151a;
+	--color-on-primary: #fff1de;
+	--color-danger: #c9302c;
+}
+
+@media (prefers-color-scheme: dark) {
+	:root {
+		--color-bg: #17151a;
+		--color-surface: #211e25;
+		--color-ink: #f4efe8;
+		--color-muted: #a59faa;
+		--color-line: #36313b;
+		--color-primary: #ff7a1a;
+		--color-on-primary: #17151a;
+		--color-danger: #ff6b63;
+	}
+}
+
+/* On html, not just body: body is only as tall as its content, the canvas isn't */
+html {
+	color-scheme: light dark;
+	-webkit-tap-highlight-color: transparent;
+	background: var(--color-bg);
+	color: var(--color-ink);
+}
+
+/* Native popovers used as bottom sheets: they live in the top layer and close on
+   outside tap or Esc for free. */
+[popover].sheet {
+	inset: auto 0 0 0;
+	margin: 0 auto;
+	width: min(100%, 36rem);
+	max-height: 75dvh;
+	border: 1px solid var(--color-line);
+	border-bottom: 0;
+	border-radius: 1.25rem 1.25rem 0 0;
+	background: var(--color-surface);
+	color: var(--color-ink);
+	padding: 1rem 1rem calc(1rem + env(safe-area-inset-bottom));
+	overflow-y: auto;
+}
+
+[popover].sheet::backdrop {
+	background: rgb(0 0 0 / 0.35);
+}

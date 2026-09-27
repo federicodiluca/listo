@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { resolve } from '$app/paths';
 	import SiteFooter from '$lib/components/SiteFooter.svelte';
 	import { site } from '$lib/site';
 </script>
@@ -17,7 +18,12 @@
 	<p class="mt-4 text-lg">
 		Liste personalizzabili in cui ogni elemento può stare in più categorie.
 	</p>
-	<p class="mt-2 text-sm opacity-70">In costruzione.</p>
+	<a
+		href={resolve('/app')}
+		class="mt-8 inline-block rounded-xl bg-primary px-5 py-3 font-medium text-on-primary"
+		>Apri l'app</a
+	>
+	<p class="mt-4 text-sm text-muted">In costruzione.</p>
 </main>
 
 <SiteFooter />

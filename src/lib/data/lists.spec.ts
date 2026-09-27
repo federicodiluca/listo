@@ -7,6 +7,8 @@ import {
 	deleteCategory,
 	deleteList,
 	getCategories,
+	getListSummaries,
+	getListSummary,
 	moveCategory,
 	renameList,
 	updateCategory
@@ -147,5 +149,23 @@ describe('multi-category lookup', () => {
 		const underReady = await db.items.where('categoryIds').equals(ready.id).toArray();
 		expect(underVeg.map((i) => i.id)).toEqual([soup.id]);
 		expect(underReady.map((i) => i.id)).toEqual([soup.id]);
+	});
+});
+
+describe('summaries', () => {
+	it('returns lists oldest first with their own categories', async () => {
+		const first = await createList('Congelatore', [{ emoji: '🥩', name: 'Carne', color: 'rosso' }]);
+		await new Promise((resolve) => setTimeout(resolve, 5)); // distinct createdAt
+		const second = await createList('Dispensa', [
+			{ emoji: '🫘', name: 'Legumi', color: 'marrone' }
+		]);
+
+		const summaries = await getListSummaries();
+		expect(summaries.map((s) => s.list.id)).toEqual([first, second]);
+		expect(summaries[1].categories.map((c) => c.name)).toEqual(['Legumi']);
+	});
+
+	it('returns null for a missing list', async () => {
+		expect(await getListSummary('missing')).toBeNull();
 	});
 });
