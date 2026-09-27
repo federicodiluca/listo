@@ -6,9 +6,17 @@ export type CalendarDate = string;
 /** Instant as an ISO 8601 string in UTC, e.g. `2026-09-27T13:45:00.000Z`. */
 export type Timestamp = string;
 
+export type SortField = 'addedOn' | 'name' | 'quantity' | 'category';
+
+export type ListSort = { field: SortField; direction: 'asc' | 'desc' };
+
+export const defaultSort: ListSort = { field: 'addedOn', direction: 'asc' };
+
 export type List = {
 	id: string;
 	name: string;
+	/** How items are ordered; remembered per list. Added in schema version 2. */
+	sort: ListSort;
 	createdAt: Timestamp;
 	updatedAt: Timestamp;
 };
@@ -41,6 +49,12 @@ export type Item = {
 	createdAt: Timestamp;
 	updatedAt: Timestamp;
 };
+
+/** Item fields the user edits; the rest (ids, timestamps) is managed by the app. */
+export type ItemDraft = Pick<
+	Item,
+	'name' | 'quantity' | 'unit' | 'categoryIds' | 'addedOn' | 'note'
+>;
 
 /** What the user provides when creating a category; the rest is filled in by the app. */
 export type CategoryDraft = Pick<Category, 'emoji' | 'name' | 'color'>;

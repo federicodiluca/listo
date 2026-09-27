@@ -1,5 +1,5 @@
 import { Dexie, type EntityTable } from 'dexie';
-import type { Category, Item, List } from './types';
+import { defaultSort, type Category, type Item, type List } from './types';
 
 /**
  * The local database (IndexedDB, through Dexie). It is the only source the UI reads
@@ -21,6 +21,16 @@ export class ListoDatabase extends Dexie {
 			categories: 'id, listId',
 			items: 'id, listId, *categoryIds'
 		});
+		// v2: lists remember their sort order. Indexes are unchanged, so no stores();
+		// upgrade() runs once, on databases still at v1, before anything else can read.
+		this.version(2).upgrade((tx) =>
+			tx
+				.table<List>('lists')
+				.toCollection()
+				.modify((list) => {
+					list.sort ??= defaultSort;
+				})
+		);
 	}
 }
 

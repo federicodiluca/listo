@@ -1,11 +1,12 @@
 import type { IconName } from '$lib/ui/Icon.svelte';
-import type { CategoryDraft } from './types';
+import type { CategoryDraft, ListSort } from './types';
 
 export type ListTemplate = {
 	id: string;
 	icon: IconName;
 	name: string;
 	description: string;
+	sort: ListSort;
 	categories: CategoryDraft[];
 };
 
@@ -16,6 +17,8 @@ export const templates: ListTemplate[] = [
 		icon: 'snowflake',
 		name: 'Congelatore',
 		description: 'Cosa hai in freezer e da quando.',
+		// oldest first: what should be eaten soon comes up top
+		sort: { field: 'addedOn', direction: 'asc' },
 		categories: [
 			{ emoji: '🥩', name: 'Carne', color: 'rosso' },
 			{ emoji: '🐟', name: 'Pesce', color: 'azzurro' },
@@ -30,6 +33,7 @@ export const templates: ListTemplate[] = [
 		icon: 'jar',
 		name: 'Dispensa',
 		description: 'Scorte a lunga conservazione.',
+		sort: { field: 'category', direction: 'asc' },
 		categories: [
 			{ emoji: '🍝', name: 'Pasta e riso', color: 'ambra' },
 			{ emoji: '🥫', name: 'Conserve', color: 'pomodoro' },
@@ -44,6 +48,7 @@ export const templates: ListTemplate[] = [
 		icon: 'cart',
 		name: 'Lista della spesa',
 		description: 'Cosa comprare, diviso per reparto.',
+		sort: { field: 'category', direction: 'asc' },
 		categories: [
 			{ emoji: '🍎', name: 'Frutta e verdura', color: 'verde' },
 			{ emoji: '🧀', name: 'Latticini', color: 'giallo' },
@@ -57,6 +62,7 @@ export const templates: ListTemplate[] = [
 		icon: 'blank',
 		name: 'Da zero',
 		description: 'Nessuna categoria: le crei tu.',
+		sort: { field: 'addedOn', direction: 'asc' },
 		categories: []
 	}
 ];

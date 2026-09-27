@@ -30,7 +30,7 @@
 	async function create(event: SubmitEvent) {
 		event.preventDefault();
 		try {
-			const id = await createList(name, drafts);
+			const id = await createList(name, drafts, template?.sort);
 			// replaceState: "back" from the new list goes to the overview, not to this form
 			await goto(resolve('/app/lista/[id]', { id }), { replaceState: true });
 		} catch (e) {

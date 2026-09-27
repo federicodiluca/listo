@@ -1,6 +1,6 @@
 import { db } from './db';
 import { cleanName, firstGrapheme } from './text';
-import type { Category, CategoryDraft, List } from './types';
+import { defaultSort, type Category, type CategoryDraft, type List, type ListSort } from './types';
 
 const now = () => new Date().toISOString();
 
@@ -17,11 +17,16 @@ function toCategory(listId: string, draft: CategoryDraft, position: number): Cat
 }
 
 /** Creates a list together with its initial categories; resolves with the list id. */
-export async function createList(name: string, categories: CategoryDraft[]): Promise<string> {
+export async function createList(
+	name: string,
+	categories: CategoryDraft[],
+	sort: ListSort = defaultSort
+): Promise<string> {
 	const timestamp = now();
 	const list: List = {
 		id: crypto.randomUUID(),
 		name: cleanName(name),
+		sort,
 		createdAt: timestamp,
 		updatedAt: timestamp
 	};
@@ -35,6 +40,10 @@ export async function createList(name: string, categories: CategoryDraft[]): Pro
 
 export async function renameList(id: string, name: string): Promise<void> {
 	await db.lists.update(id, { name: cleanName(name), updatedAt: now() });
+}
+
+export async function setListSort(id: string, sort: ListSort): Promise<void> {
+	await db.lists.update(id, { sort, updatedAt: now() });
 }
 
 /** Deletes a list with everything in it. */
