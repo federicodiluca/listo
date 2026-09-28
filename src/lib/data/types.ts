@@ -19,6 +19,8 @@ export type List = {
 	sort: ListSort;
 	createdAt: Timestamp;
 	updatedAt: Timestamp;
+	/** Set when deleted: the record stays as a tombstone so the deletion can sync. Schema v3. */
+	deletedAt: Timestamp | null;
 };
 
 export type Category = {
@@ -31,6 +33,8 @@ export type Category = {
 	/** Sort order within the list: 0, 1, 2… */
 	position: number;
 	updatedAt: Timestamp;
+	/** Set when deleted: the record stays as a tombstone so the deletion can sync. Schema v3. */
+	deletedAt: Timestamp | null;
 };
 
 export type Item = {
@@ -48,7 +52,12 @@ export type Item = {
 	archivedAt: Timestamp | null;
 	createdAt: Timestamp;
 	updatedAt: Timestamp;
+	/** Set when deleted: the record stays as a tombstone so the deletion can sync. Schema v3. */
+	deletedAt: Timestamp | null;
 };
+
+/** Every synced record has these. */
+export type SyncedRecord = { id: string; updatedAt: Timestamp; deletedAt: Timestamp | null };
 
 /** Item fields the user edits; the rest (ids, timestamps) is managed by the app. */
 export type ItemDraft = Pick<

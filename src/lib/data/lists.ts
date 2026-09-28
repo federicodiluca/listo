@@ -12,7 +12,8 @@ function toCategory(listId: string, draft: CategoryDraft, position: number): Cat
 		name: cleanName(draft.name),
 		color: draft.color,
 		position,
-		updatedAt: now()
+		updatedAt: now(),
+		deletedAt: null
 	};
 }
 
@@ -29,7 +30,8 @@ export async function createList(
 		// plain copy: callers may pass Svelte $state proxies, which IndexedDB can't clone
 		sort: { field: sort.field, direction: sort.direction },
 		createdAt: timestamp,
-		updatedAt: timestamp
+		updatedAt: timestamp,
+		deletedAt: null
 	};
 	const rows = categories.map((draft, i) => toCategory(list.id, draft, i));
 	await db.transaction('rw', db.lists, db.categories, async () => {
@@ -50,23 +52,31 @@ export async function setListSort(id: string, sort: ListSort): Promise<void> {
 	});
 }
 
-/** Deletes a list with everything in it. */
+/**
+ * Deletes a list with everything in it. Records become tombstones (see `deletedAt`):
+ * otherwise another device, at the next sync, would bring the list back.
+ */
 export async function deleteList(id: string): Promise<void> {
+	const tombstone = { deletedAt: now(), updatedAt: now() };
 	await db.transaction('rw', db.lists, db.categories, db.items, async () => {
-		await db.items.where('listId').equals(id).delete();
-		await db.categories.where('listId').equals(id).delete();
-		await db.lists.delete(id);
+		await db.items.where('listId').equals(id).modify(tombstone);
+		await db.categories.where('listId').equals(id).modify(tombstone);
+		await db.lists.update(id, tombstone);
 	});
 }
 
 /** Categories of a list, in the user's order. */
 export async function getCategories(listId: string): Promise<Category[]> {
-	return db.categories.where('listId').equals(listId).sortBy('position');
+	return db.categories
+		.where('listId')
+		.equals(listId)
+		.filter((c) => !c.deletedAt)
+		.sortBy('position');
 }
 
 export async function addCategory(listId: string, draft: CategoryDraft): Promise<string> {
 	return db.transaction('rw', db.categories, async () => {
-		const position = await db.categories.where('listId').equals(listId).count();
+		const position = (await getCategories(listId)).length;
 		const category = toCategory(listId, draft, position);
 		await db.categories.add(category);
 		return category.id;
@@ -112,7 +122,7 @@ export async function deleteCategory(id: string): Promise<void> {
 				item.categoryIds = item.categoryIds.filter((c) => c !== id);
 				item.updatedAt = timestamp;
 			});
-		await db.categories.delete(id);
+		await db.categories.update(id, { deletedAt: timestamp, updatedAt: timestamp });
 		// keep positions contiguous (0, 1, 2…) after the gap
 		const rest = await getCategories(category.listId);
 		await Promise.all(
@@ -130,8 +140,11 @@ export type ListSummary = { list: List; categories: Category[] };
 /** Every list, oldest first, each with its categories in order. */
 export async function getListSummaries(): Promise<ListSummary[]> {
 	const [lists, categories] = await Promise.all([
-		db.lists.orderBy('createdAt').toArray(),
-		db.categories.toArray()
+		db.lists
+			.orderBy('createdAt')
+			.filter((l) => !l.deletedAt)
+			.toArray(),
+		db.categories.filter((c) => !c.deletedAt).toArray()
 	]);
 	return lists.map((list) => ({
 		list,
@@ -144,5 +157,5 @@ export async function getListSummaries(): Promise<ListSummary[]> {
 /** A list with its categories, or `null` if it doesn't exist (e.g. deleted elsewhere). */
 export async function getListSummary(id: string): Promise<ListSummary | null> {
 	const list = await db.lists.get(id);
-	return list ? { list, categories: await getCategories(id) } : null;
+	return list && !list.deletedAt ? { list, categories: await getCategories(id) } : null;
 }

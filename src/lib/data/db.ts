@@ -1,5 +1,5 @@
 import { Dexie, type EntityTable } from 'dexie';
-import { defaultSort, type Category, type Item, type List } from './types';
+import { defaultSort, type Category, type Item, type List, type SyncedRecord } from './types';
 
 /**
  * The local database (IndexedDB, through Dexie). It is the only source the UI reads
@@ -31,6 +31,17 @@ export class ListoDatabase extends Dexie {
 					list.sort ??= defaultSort;
 				})
 		);
+		// v3: deletions become tombstones (deletedAt), so they can be synced to other devices
+		this.version(3).upgrade(async (tx) => {
+			for (const table of ['lists', 'categories', 'items']) {
+				await tx
+					.table<SyncedRecord>(table)
+					.toCollection()
+					.modify((record) => {
+						record.deletedAt ??= null;
+					});
+			}
+		});
 	}
 }
 

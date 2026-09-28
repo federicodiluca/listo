@@ -40,18 +40,24 @@ export async function addItem(listId: string, name: string): Promise<string> {
 		note: '',
 		archivedAt: null,
 		createdAt: timestamp,
-		updatedAt: timestamp
+		updatedAt: timestamp,
+		deletedAt: null
 	};
 	await db.items.add(item);
 	return item.id;
 }
 
 export async function getItems(listId: string): Promise<Item[]> {
-	return db.items.where('listId').equals(listId).toArray();
+	return db.items
+		.where('listId')
+		.equals(listId)
+		.filter((i) => !i.deletedAt)
+		.toArray();
 }
 
 export async function getItem(id: string): Promise<Item | null> {
-	return (await db.items.get(id)) ?? null;
+	const item = await db.items.get(id);
+	return item && !item.deletedAt ? item : null;
 }
 
 export async function updateItem(id: string, changes: Partial<ItemDraft>): Promise<void> {
@@ -102,8 +108,9 @@ export async function restoreItem(id: string): Promise<void> {
 	});
 }
 
+/** Marks the item as deleted (a tombstone), so the deletion can reach other devices. */
 export async function deleteItem(id: string): Promise<void> {
-	await db.items.delete(id);
+	await db.items.update(id, { deletedAt: now(), updatedAt: now() });
 }
 
 export type NameMatch = { item: Item; archived: boolean };

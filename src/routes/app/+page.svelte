@@ -5,14 +5,14 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
-	import { db } from '$lib/data/db';
+	import { getListSummary } from '$lib/data/lists';
 	import { getLastListId } from '$lib/prefs';
 	import { onMount } from 'svelte';
 
 	onMount(async () => {
 		const id = getLastListId();
 		const target =
-			id && (await db.lists.get(id)) ? resolve('/app/lista/[id]', { id }) : resolve('/app/liste');
+			id && (await getListSummary(id)) ? resolve('/app/lista/[id]', { id }) : resolve('/app/liste');
 		await goto(target, { replaceState: true });
 	});
 </script>

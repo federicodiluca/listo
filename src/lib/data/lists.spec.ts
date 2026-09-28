@@ -13,6 +13,7 @@ import {
 	renameList,
 	updateCategory
 } from './lists';
+import { getItems } from './items';
 import { templates } from './templates';
 import type { Item } from './types';
 
@@ -34,7 +35,8 @@ function item(listId: string, categoryIds: string[]): Item {
 		note: '',
 		archivedAt: null,
 		createdAt: timestamp,
-		updatedAt: timestamp
+		updatedAt: timestamp,
+		deletedAt: null
 	};
 }
 
@@ -67,11 +69,27 @@ describe('lists', () => {
 
 		await deleteList(doomed);
 
-		expect(await db.lists.get(doomed)).toBeUndefined();
+		expect(await getListSummary(doomed)).toBeNull();
 		expect(await getCategories(doomed)).toEqual([]);
-		expect(await db.items.where('listId').equals(doomed).count()).toBe(0);
+		expect(await getItems(doomed)).toEqual([]);
 		expect(await getCategories(kept)).toHaveLength(1);
-		expect(await db.items.where('listId').equals(kept).count()).toBe(1);
+		expect(await getItems(kept)).toHaveLength(1);
+		expect((await getListSummaries()).map((s) => s.list.id)).toEqual([kept]);
+	});
+
+	it('keeps deleted records as tombstones, so the deletion can sync', async () => {
+		const doomed = await createList('A', [{ emoji: '', name: 'x', color: 'blu' }]);
+		const soup = item(doomed, []);
+		await db.items.add(soup);
+		const before = (await db.lists.get(doomed))!.updatedAt;
+
+		await deleteList(doomed);
+
+		const list = await db.lists.get(doomed);
+		expect(list?.deletedAt).not.toBeNull();
+		expect(list!.updatedAt >= before).toBe(true);
+		expect((await db.items.get(soup.id))?.deletedAt).not.toBeNull();
+		expect((await db.categories.where('listId').equals(doomed).first())?.deletedAt).not.toBeNull();
 	});
 });
 

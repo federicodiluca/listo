@@ -9,7 +9,8 @@ const category = (id: string, position: number): Category => ({
 	name: id,
 	color: 'grigio',
 	position,
-	updatedAt: ''
+	updatedAt: '',
+	deletedAt: null
 });
 
 const item = (name: string, fields: Partial<Item> = {}): Item => ({
@@ -24,6 +25,7 @@ const item = (name: string, fields: Partial<Item> = {}): Item => ({
 	archivedAt: null,
 	createdAt: '',
 	updatedAt: '',
+	deletedAt: null,
 	...fields
 });
 
