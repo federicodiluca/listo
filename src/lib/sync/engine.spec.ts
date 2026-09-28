@@ -106,6 +106,12 @@ describe('syncOnce between two devices', () => {
 		expect((await phone.lists.get('l'))?.name).toBe('Modificato ora');
 	});
 
+	it('reports how far the sync got, so later local edits count as pending', async () => {
+		await pc.lists.add(list('l', { updatedAt: T1 }));
+		await pc.items.add(item('i', 'l', { updatedAt: T2 }));
+		expect((await syncOnce(pc, sheet)).syncedUpTo).toBe(T2);
+	});
+
 	it('refuses to touch a sheet written by a newer app version', async () => {
 		await pc.lists.add(list('l'));
 		await syncOnce(pc, sheet);

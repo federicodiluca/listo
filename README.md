@@ -13,9 +13,14 @@ non è un inventario fisso: ognuno crea le proprie liste e le proprie categorie.
 - **Nessun server, nessun dato raccolto.** L'app è un sito statico. I dati restano sul
   dispositivo (IndexedDB) oppure, se si sceglie di sincronizzare, in un foglio Google
   nel Drive di chi la usa.
-- **Sincronizzazione facoltativa con Google Drive.** Ogni lista può avere una copia in un
-  foglio Google, come backup e per usarla da più dispositivi. L'app chiede solo il
-  permesso `drive.file`, quindi vede esclusivamente i fogli che ha creato lei.
+- **Local-first.** L'interfaccia legge e scrive solo il database locale, quindi funziona
+  anche senza rete. Ogni record ha un `updatedAt`, e le eliminazioni restano come
+  "lapidi" (`deletedAt`) per poter essere sincronizzate.
+- **Sincronizzazione facoltativa con Google Drive.** Un unico foglio Google nel Drive
+  dell'utente fa da copia condivisa tra i dispositivi: a ogni sincronizzazione l'app lo
+  legge, unisce i dati record per record (vince la modifica più recente) e lo riscrive
+  solo se serve. L'app chiede solo il permesso `drive.file`, quindi vede esclusivamente
+  il file che ha creato lei.
 - **Landing pre-renderizzata, app lato client.** Le pagine pubbliche sono HTML statico
   indicizzabile; l'area `/app` gira solo nel browser ed è esclusa dall'indicizzazione.
 

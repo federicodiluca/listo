@@ -26,6 +26,11 @@ export type SyncResult = {
 	sent: boolean;
 	/** Sheet rows ignored because they were unreadable. */
 	skipped: number;
+	/**
+	 * Newest `updatedAt` in the synced state: local changes after it are not synced yet.
+	 * Not the clock time, which would hide edits made while waiting for the network.
+	 */
+	syncedUpTo: string;
 };
 
 /** Everything in the local database, tombstones included. */
@@ -90,5 +95,9 @@ export async function syncOnce(
 		);
 		await store.write(toSheet(merged), counts);
 	}
-	return { received, sent, skipped };
+	const syncedUpTo = [...merged.lists, ...merged.categories, ...merged.items].reduce(
+		(latest, r) => (r.updatedAt > latest ? r.updatedAt : latest),
+		''
+	);
+	return { received, sent, skipped, syncedUpTo };
 }

@@ -69,6 +69,14 @@ async function getClient(): Promise<google.accounts.oauth2.TokenClient> {
 }
 
 /**
+ * Loads Google's script ahead of time. The popup must open right after a tap: if the
+ * script were still downloading at that point, the browser would block the popup.
+ */
+export async function prepareAuth(): Promise<void> {
+	await getClient();
+}
+
+/**
  * Asks Google for an access token (valid ~1 hour). There is no refresh token in a
  * browser-only app: when it expires we simply ask again. Opens a popup, so it must be
  * called from a user gesture (a tap), or the browser blocks it.

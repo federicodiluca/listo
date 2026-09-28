@@ -48,3 +48,14 @@ export function formatDate(date: CalendarDate): string {
 		year: 'numeric'
 	});
 }
+
+/** "adesso", "5 minuti fa", "2 ore fa", or the date for anything older than a day. */
+export function formatRelativeTime(instant: string, now = new Date()): string {
+	const minutes = Math.floor((now.getTime() - new Date(instant).getTime()) / 60_000);
+	if (minutes < 1) return 'adesso';
+	if (minutes === 1) return '1 minuto fa';
+	if (minutes < 60) return `${minutes} minuti fa`;
+	const hours = Math.floor(minutes / 60);
+	if (hours < 24) return hours === 1 ? '1 ora fa' : `${hours} ore fa`;
+	return formatDate(today(new Date(instant)));
+}

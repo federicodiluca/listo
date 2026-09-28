@@ -62,4 +62,11 @@
 			onclick={close}>Tutte le liste</a
 		>
 	</div>
+	<a
+		href={resolve('/app/account')}
+		class="mt-2 flex items-center justify-center gap-2 py-3 text-sm text-muted"
+		onclick={close}
+	>
+		<Icon name="cloud" size={18} /> Account e sincronizzazione
+	</a>
 </div>

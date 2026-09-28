@@ -5,6 +5,7 @@
 	import AppHeader from '$lib/ui/AppHeader.svelte';
 	import CategoryChip from '$lib/ui/CategoryChip.svelte';
 	import Icon from '$lib/ui/Icon.svelte';
+	import SyncIndicator from '$lib/ui/SyncIndicator.svelte';
 
 	const summaries = live(() => null, getListSummaries);
 </script>
@@ -13,7 +14,11 @@
 	<title>Le mie liste — Listo</title>
 </svelte:head>
 
-<AppHeader title="Le mie liste" />
+<AppHeader title="Le mie liste">
+	{#snippet actions()}
+		<SyncIndicator />
+	{/snippet}
+</AppHeader>
 
 <main class="mx-auto max-w-xl px-4 py-6">
 	{#if summaries.current?.length === 0}

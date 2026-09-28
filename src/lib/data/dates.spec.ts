@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { daysBetween, formatAge, formatDate, isCalendarDate, today } from './dates';
+import {
+	daysBetween,
+	formatAge,
+	formatDate,
+	formatRelativeTime,
+	isCalendarDate,
+	today
+} from './dates';
 
 describe('today', () => {
 	it('uses the local calendar day', () => {
@@ -42,5 +49,16 @@ describe('formatAge', () => {
 describe('formatDate', () => {
 	it('formats in Italian', () => {
 		expect(formatDate('2026-09-27')).toBe('27 set 2026');
+	});
+});
+
+describe('formatRelativeTime', () => {
+	const now = new Date('2026-09-28T12:00:00.000Z');
+	it('counts minutes and hours, then shows the date', () => {
+		expect(formatRelativeTime('2026-09-28T11:59:40.000Z', now)).toBe('adesso');
+		expect(formatRelativeTime('2026-09-28T11:59:00.000Z', now)).toBe('1 minuto fa');
+		expect(formatRelativeTime('2026-09-28T11:35:00.000Z', now)).toBe('25 minuti fa');
+		expect(formatRelativeTime('2026-09-28T09:00:00.000Z', now)).toBe('3 ore fa');
+		expect(formatRelativeTime('2026-09-20T09:00:00.000Z', now)).toBe('20 set 2026');
 	});
 });

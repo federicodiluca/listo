@@ -22,7 +22,7 @@
 	// history (like Android's back button) instead of following the link restores
 	// that page's state: scroll position and snapshots such as filters.
 	let previous = $state<string>();
-	afterNavigate(({ from }) => (previous = from?.url.pathname));
+	afterNavigate(({ from }) => (previous = from?.url?.pathname));
 
 	function goBack(event: MouseEvent) {
 		if (back && previous === new URL(back, location.href).pathname) {

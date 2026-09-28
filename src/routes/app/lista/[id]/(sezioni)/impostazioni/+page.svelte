@@ -4,6 +4,7 @@
 	import { getListContext } from '$lib/data/list-context';
 	import { deleteList, renameList } from '$lib/data/lists';
 	import { getLastListId, setLastListId } from '$lib/prefs';
+	import { sync } from '$lib/sync/sync.svelte';
 	import Icon from '$lib/ui/Icon.svelte';
 
 	const context = getListContext();
@@ -76,8 +77,10 @@
 			</div>
 		</dl>
 		<p class="mt-2 text-sm text-muted">
-			I dati sono salvati solo su questo dispositivo. La sincronizzazione con Google Drive arriverà
-			presto.
+			{sync.enabled
+				? 'Le liste sono sincronizzate con il tuo Google Drive.'
+				: 'Le liste sono salvate solo su questo dispositivo.'}
+			<a class="underline" href={resolve('/app/account')}>Gestisci la sincronizzazione</a>
 		</p>
 	</section>
 

@@ -5,6 +5,7 @@
 	import AppHeader from '$lib/ui/AppHeader.svelte';
 	import Icon, { type IconName } from '$lib/ui/Icon.svelte';
 	import ListSwitcher from '$lib/ui/ListSwitcher.svelte';
+	import SyncIndicator from '$lib/ui/SyncIndicator.svelte';
 
 	let { children } = $props();
 
@@ -29,6 +30,9 @@
 <AppHeader title={context.summary.list.name}>
 	{#snippet heading()}
 		<ListSwitcher current={context.summary.list} />
+	{/snippet}
+	{#snippet actions()}
+		<SyncIndicator />
 	{/snippet}
 </AppHeader>
 
