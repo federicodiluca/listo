@@ -17,8 +17,9 @@ import {
  * How data is laid out in the Google Sheet. Bump FORMAT_VERSION on incompatible
  * changes: an older app then refuses to write, instead of mangling a newer sheet.
  * v2: custom fields (new "campi" tab and columns); v1 sheets are still read fine.
+ * v3: grouping by category is its own list setting ("raggruppa"), no longer a sort.
  */
-export const FORMAT_VERSION = 2;
+export const FORMAT_VERSION = 3;
 
 export const TABS = {
 	lists: 'liste',
@@ -35,6 +36,7 @@ const LIST_HEADER = [
 	'nome',
 	'ordina_per',
 	'verso',
+	'raggruppa',
 	'avviso_scadenza',
 	'creata',
 	'modificata',
@@ -83,7 +85,7 @@ const FIELD_HEADER = [
 	'eliminato'
 ];
 
-const SORT_FIELDS: readonly SortField[] = ['addedOn', 'name', 'quantity', 'category', 'expiry'];
+const SORT_FIELDS: readonly SortField[] = ['addedOn', 'name', 'quantity', 'expiry'];
 const FIELD_TYPES: readonly FieldType[] = ['date', 'duration', 'number', 'text', 'boolean'];
 const flag = (value: boolean) => (value ? 'sì' : '');
 const TIMESTAMP = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/;
@@ -129,6 +131,7 @@ export function toSheet(snapshot: Snapshot): Record<string, string[][]> {
 				l.name,
 				l.sort.field,
 				l.sort.direction,
+				flag(l.groupByCategory),
 				String(l.expiryWarningDays),
 				l.createdAt,
 				l.updatedAt,
@@ -211,18 +214,23 @@ export function fromSheet(tabs: Record<string, string[][]>): ParseResult {
 		return value !== null;
 	};
 
+	const present = Object.fromEntries((tabs[TABS.lists]?.[0] ?? []).map((column) => [column, true]));
 	const lists = read(tabs[TABS.lists], LIST_HEADER)
 		.map((r): List | null => {
 			const deletedAt = optionalTimestamp(r.eliminata);
 			if (!r.id || !r.nome || !isTimestamp(r.creata) || !isTimestamp(r.modificata)) return null;
 			if (deletedAt === undefined) return null;
-			const field = SORT_FIELDS.find((f) => f === r.ordina_per);
-			const direction = r.verso === 'desc' ? 'desc' : 'asc';
+			// sheets before v3 had "by category" as a sort: now it's grouping + by name
+			const legacyCategory = r.ordina_per === 'category';
+			const field = legacyCategory ? 'name' : SORT_FIELDS.find((f) => f === r.ordina_per);
+			const direction = r.verso === 'desc' && !legacyCategory ? 'desc' : 'asc';
 			const warning = Number(r.avviso_scadenza);
 			return {
 				id: r.id,
 				name: r.nome,
 				sort: field ? { field, direction } : defaultSort,
+				// missing before v3: grouped, the default
+				groupByCategory: r.raggruppa !== '' || legacyCategory || !('raggruppa' in present),
 				// missing in v1 sheets: the default
 				expiryWarningDays: r.avviso_scadenza !== '' && Number.isInteger(warning) ? warning : 7,
 				createdAt: r.creata,

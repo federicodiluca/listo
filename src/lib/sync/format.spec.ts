@@ -4,7 +4,7 @@ import { FORMAT_VERSION, fromSheet, TABS, toSheet, type Snapshot } from './forma
 
 const snapshot: Snapshot = {
 	lists: [
-		list('l1', { sort: { field: 'category', direction: 'desc' } }),
+		list('l1', { sort: { field: 'expiry', direction: 'desc' }, groupByCategory: false }),
 		list('l2', { deletedAt: T1 })
 	],
 	categories: [
@@ -153,5 +153,20 @@ describe('sheet format', () => {
 		const { snapshot: back, skipped } = fromSheet(tabs);
 		expect(back.items.map((i) => i.id)).toEqual(['i2']);
 		expect(skipped).toBe(1);
+	});
+
+	it('reads the old "by category" sort of v2 sheets as grouping + by name', () => {
+		const tabs = toSheet(snapshot);
+		const header = tabs[TABS.lists][0];
+		const legacy = {
+			...tabs,
+			[TABS.lists]: tabs[TABS.lists].map((row) => row.filter((_, i) => header[i] !== 'raggruppa'))
+		};
+		const col = legacy[TABS.lists][0].indexOf('ordina_per');
+		legacy[TABS.lists][1][col] = 'category';
+		const [l1, l2] = fromSheet(legacy).snapshot.lists;
+		expect(l1.sort).toEqual({ field: 'name', direction: 'asc' });
+		expect(l1.groupByCategory).toBe(true);
+		expect(l2.groupByCategory).toBe(true); // column missing: default
 	});
 });

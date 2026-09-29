@@ -57,33 +57,34 @@ export function sortItems(
 			case 'expiry':
 				return nullsLast(expiry(a), expiry(b), (x, y) => sign * x.localeCompare(y)) || byName(a, b);
 			case 'name':
-			case 'category':
 				return sign * byName(a, b);
 		}
 	});
 }
 
 /**
- * Groups items under their categories, in the user's category order (reversed for
- * `desc`), names A→Z inside each group. An item with two categories shows up in both
- * groups; items without categories end up in a final group. Empty groups are dropped.
+ * Groups items by category, in the user's category order. Each item appears once,
+ * under its first category (by that order), or, when some categories are selected in
+ * the filter, under the first selected one it has: filtering "Piatti pronti" must not
+ * show the minestrone under a "Verdura" heading. Items keep their incoming order within
+ * a group; items without categories end up in a final group. Empty groups are dropped.
  */
 export function groupByCategory(
 	items: readonly Item[],
 	categories: readonly Category[],
-	direction: ListSort['direction']
+	selected: ReadonlySet<string> = new Set()
 ): ItemGroup[] {
 	const ordered = [...categories].sort((a, b) => a.position - b.position);
-	if (direction === 'desc') ordered.reverse();
-	const known = new Set(categories.map((c) => c.id));
-	const sorted = [...items].sort(byName);
-	const groups: ItemGroup[] = ordered.map((category) => ({
-		category,
-		items: sorted.filter((item) => item.categoryIds.includes(category.id))
-	}));
-	groups.push({
-		category: null,
-		items: sorted.filter((item) => !item.categoryIds.some((c) => known.has(c)))
-	});
-	return groups.filter((group) => group.items.length > 0);
+	const groups = new Map<string | null, Item[]>([
+		...ordered.map((c): [string, Item[]] => [c.id, []]),
+		[null, []]
+	]);
+	const eligible = selected.size ? ordered.filter((c) => selected.has(c.id)) : ordered;
+	for (const item of items) {
+		const home = eligible.find((c) => item.categoryIds.includes(c.id));
+		groups.get(home?.id ?? null)!.push(item);
+	}
+	return [...groups]
+		.filter(([, group]) => group.length > 0)
+		.map(([id, group]) => ({ category: ordered.find((c) => c.id === id) ?? null, items: group }));
 }

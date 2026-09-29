@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
 	import { getListContext } from '$lib/data/list-context';
-	import { setListSort } from '$lib/data/lists';
+	import { setGroupByCategory, setListSort } from '$lib/data/lists';
 	import { expiryOf, expiryStatus } from '$lib/data/field-values';
 	import { colorValue } from '$lib/data/palette';
 	import type { Category, Item } from '$lib/data/types';
@@ -57,9 +57,10 @@
 			only: expiring && !archived ? isExpiring : undefined
 		})
 	);
-	const grouped = $derived(list.sort.field === 'category');
-	const groups = $derived(grouped ? groupByCategory(visible, categories, list.sort.direction) : []);
-	const sorted = $derived(grouped ? [] : sortItems(visible, list.sort, expiryFor));
+	// sort first, then group: each group keeps the chosen order
+	const sorted = $derived(sortItems(visible, list.sort, expiryFor));
+	const grouped = $derived(list.groupByCategory && categories.length > 0);
+	const groups = $derived(grouped ? groupByCategory(sorted, categories, selected) : []);
 	const filtering = $derived(query.trim() !== '' || selected.size > 0 || (expiring && !archived));
 	/** Items in the current view (active or archived) before filters, for "3 su 12". */
 	const total = $derived(context.items.filter((i) => (i.archivedAt !== null) === archived).length);
@@ -96,7 +97,13 @@
 				bind:value={query}
 			/>
 		</label>
-		<SortSheet sort={list.sort} {hasExpiry} onchange={(sort) => setListSort(list.id, sort)} />
+		<SortSheet
+			sort={list.sort}
+			{hasExpiry}
+			grouped={categories.length ? list.groupByCategory : undefined}
+			onchange={(sort) => setListSort(list.id, sort)}
+			ongroup={(value) => setGroupByCategory(list.id, value)}
+		/>
 		<button
 			class="grid size-10 shrink-0 place-items-center rounded-xl border {archived
 				? 'border-transparent bg-primary text-on-primary'

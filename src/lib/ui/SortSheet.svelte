@@ -10,12 +10,6 @@
 		},
 		{ field: 'name', label: 'Nome', asc: 'Dalla A alla Z', desc: 'Dalla Z alla A' },
 		{ field: 'quantity', label: 'Quantità', asc: 'Prima i meno', desc: 'Prima i più' },
-		{
-			field: 'category',
-			label: 'Categoria',
-			asc: 'Nell’ordine delle categorie',
-			desc: 'In ordine inverso'
-		},
 		{ field: 'expiry', label: 'Scadenza', asc: 'Prima le più vicine', desc: 'Prima le più lontane' }
 	];
 
@@ -31,12 +25,17 @@
 	let {
 		sort,
 		onchange,
-		hasExpiry
+		hasExpiry,
+		grouped,
+		ongroup
 	}: {
 		sort: ListSort;
 		onchange: (sort: ListSort) => void;
 		/** The "by expiry" order only makes sense if the list has an expiry field. */
 		hasExpiry: boolean;
+		/** Grouping by category; undefined when the list has no categories. */
+		grouped?: boolean;
+		ongroup: (grouped: boolean) => void;
 	} = $props();
 
 	const available = $derived(options.filter((o) => o.field !== 'expiry' || hasExpiry));
@@ -60,7 +59,23 @@
 </button>
 
 <div popover id="{id}-sort" class="sheet" bind:this={sheet}>
-	<h2 class="mb-2 font-semibold">Ordina per</h2>
+	{#if grouped !== undefined}
+		<label class="mb-4 flex items-center gap-3 rounded-2xl border border-line p-4">
+			<span class="flex-1">
+				<strong class="block">Raggruppa per categoria</strong>
+				<span class="text-sm text-muted">
+					Ogni elemento compare una volta, sotto la sua prima categoria.
+				</span>
+			</span>
+			<input
+				type="checkbox"
+				class="size-6 accent-(--color-accent)"
+				checked={grouped}
+				onchange={(e) => ongroup(e.currentTarget.checked)}
+			/>
+		</label>
+	{/if}
+	<h2 class="mb-2 font-semibold">{grouped ? 'Dentro ogni gruppo, ordina per' : 'Ordina per'}</h2>
 	<ul class="divide-y divide-line">
 		{#each available as option (option.field)}
 			{@const selected = option.field === sort.field}

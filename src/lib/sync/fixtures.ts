@@ -10,6 +10,7 @@ export const list = (id: string, fields: Partial<List> = {}): List => ({
 	id,
 	name: `Lista ${id}`,
 	sort: { field: 'addedOn', direction: 'asc' },
+	groupByCategory: true,
 	expiryWarningDays: 7,
 	createdAt: T0,
 	updatedAt: T0,

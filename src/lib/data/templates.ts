@@ -8,6 +8,8 @@ export type ListTemplate = {
 	name: string;
 	description: string;
 	sort: ListSort;
+	/** Defaults to true: items shown in one group per category. */
+	groupByCategory?: boolean;
 	categories: CategoryDraft[];
 	/** Extra fields the list starts with; they can be removed before creating it. */
 	fields: FieldDraft[];
@@ -22,7 +24,7 @@ export const templateGroups: { id: ListTemplate['group']; label: string }[] = [
 ];
 
 const byDate: ListSort = { field: 'addedOn', direction: 'asc' };
-const byCategory: ListSort = { field: 'category', direction: 'asc' };
+const byName: ListSort = { field: 'name', direction: 'asc' };
 const byExpiry: ListSort = { field: 'expiry', direction: 'asc' };
 
 const expiry = (name: string, showInList = false): FieldDraft => ({
@@ -67,7 +69,7 @@ export const templates: ListTemplate[] = [
 		icon: 'jar',
 		name: 'Dispensa',
 		description: 'Scorte a lunga conservazione.',
-		sort: byCategory,
+		sort: byName,
 		categories: [
 			{ emoji: '🍝', name: 'Pasta e riso', color: 'ambra' },
 			{ emoji: '🥫', name: 'Conserve', color: 'pomodoro' },
@@ -84,7 +86,7 @@ export const templates: ListTemplate[] = [
 		icon: 'cart',
 		name: 'Lista della spesa',
 		description: 'Cosa comprare, diviso per reparto.',
-		sort: byCategory,
+		sort: byName,
 		categories: [
 			{ emoji: '🍎', name: 'Frutta e verdura', color: 'verde' },
 			{ emoji: '🧀', name: 'Latticini', color: 'giallo' },
@@ -118,7 +120,7 @@ export const templates: ListTemplate[] = [
 		icon: 'wrench',
 		name: 'Garage e magazzino',
 		description: 'Attrezzi, ricambi e scatoloni: cosa c’è e dove.',
-		sort: byCategory,
+		sort: byName,
 		categories: [
 			{ emoji: '🔧', name: 'Attrezzi', color: 'grigio' },
 			{ emoji: '⚙️', name: 'Ricambi', color: 'blu' },
@@ -135,7 +137,7 @@ export const templates: ListTemplate[] = [
 		icon: 'briefcase',
 		name: 'Ufficio',
 		description: 'Materiale e scorte dell’ufficio o dello studio.',
-		sort: byCategory,
+		sort: byName,
 		categories: [
 			{ emoji: '✏️', name: 'Cancelleria', color: 'giallo' },
 			{ emoji: '💻', name: 'Informatica', color: 'blu' },
@@ -151,7 +153,7 @@ export const templates: ListTemplate[] = [
 		icon: 'book',
 		name: 'Libri',
 		description: 'La tua libreria: letti, da leggere, prestati.',
-		sort: { field: 'name', direction: 'asc' },
+		sort: byName,
 		categories: [
 			{ emoji: '📖', name: 'Romanzi', color: 'viola' },
 			{ emoji: '🧠', name: 'Saggi', color: 'indaco' },
@@ -168,6 +170,7 @@ export const templates: ListTemplate[] = [
 		name: 'Cose da fare',
 		description: 'Impegni e commissioni, con le scadenze in cima.',
 		sort: byExpiry,
+		groupByCategory: false,
 		categories: [
 			{ emoji: '🏠', name: 'Casa', color: 'verde' },
 			{ emoji: '💼', name: 'Lavoro', color: 'blu' },

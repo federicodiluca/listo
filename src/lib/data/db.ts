@@ -74,6 +74,18 @@ export class ListoDatabase extends Dexie {
 						item.extra ??= {};
 					});
 			});
+		// v5: grouping by category becomes its own setting, separate from the sort order.
+		// Lists that were sorted "by category" keep their groups, sorted by name inside.
+		this.version(5).upgrade((tx) =>
+			tx
+				.table<List>('lists')
+				.toCollection()
+				.modify((list) => {
+					const legacy = (list.sort as { field: string }).field === 'category';
+					list.groupByCategory ??= true;
+					if (legacy) list.sort = { field: 'name', direction: 'asc' };
+				})
+		);
 	}
 }
 

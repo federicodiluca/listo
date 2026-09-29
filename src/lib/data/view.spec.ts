@@ -139,22 +139,34 @@ describe('groupByCategory', () => {
 	const categories = [category('ready', 1), category('veg', 0), category('meat', 2)];
 	const items = [
 		item('Piselli', { categoryIds: ['veg'] }),
-		item('Minestrone', { categoryIds: ['veg', 'ready'] }),
+		item('Minestrone', { categoryIds: ['ready', 'veg'] }),
+		item('Lasagne', { categoryIds: ['ready'] }),
 		item('Ghiaccio'),
 		item('Orfano', { categoryIds: ['deleted-category'] })
 	];
+	const ids = (groups: ReturnType<typeof groupByCategory>) =>
+		groups.map((g) => [g.category?.id ?? null, names(g.items)]);
 
-	it('follows the category order and puts multi-category items in each group', () => {
-		const groups = groupByCategory(items, categories, 'asc');
-		expect(groups.map((g) => [g.category?.id ?? null, names(g.items)])).toEqual([
-			['veg', ['Minestrone', 'Piselli']],
-			['ready', ['Minestrone']],
+	it('puts each item once, under its first category in the user order', () => {
+		expect(ids(groupByCategory(items, categories))).toEqual([
+			['veg', ['Piselli', 'Minestrone']],
+			['ready', ['Lasagne']],
 			[null, ['Ghiaccio', 'Orfano']]
 		]);
 	});
 
-	it('reverses the category order for desc, keeping the uncategorised group last', () => {
-		const groups = groupByCategory(items, categories, 'desc');
-		expect(groups.map((g) => g.category?.id ?? null)).toEqual(['ready', 'veg', null]);
+	it('with a filter, uses the first selected category the item has', () => {
+		const filtered = items.filter((i) => i.categoryIds.includes('ready'));
+		expect(ids(groupByCategory(filtered, categories, new Set(['ready'])))).toEqual([
+			['ready', ['Minestrone', 'Lasagne']]
+		]);
+	});
+
+	it('keeps the incoming order inside each group', () => {
+		const reversed = [...items].reverse();
+		expect(ids(groupByCategory(reversed, categories))[0]).toEqual([
+			'veg',
+			['Minestrone', 'Piselli']
+		]);
 	});
 });

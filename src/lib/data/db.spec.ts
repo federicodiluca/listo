@@ -27,7 +27,34 @@ describe('schema migrations', () => {
 		expect(list?.name).toBe('Congelatore');
 		expect(list?.deletedAt).toBeNull(); // v3
 		expect(list?.expiryWarningDays).toBe(7); // v4
+		expect(list?.groupByCategory).toBe(true); // v5
 		expect(await current.fields.count()).toBe(0); // v4: new table
+		current.close();
+	});
+
+	it('v5 turns the old "by category" sort into grouping plus sort by name', async () => {
+		const old = new Dexie('migration-v4');
+		old.version(4).stores({
+			lists: 'id, createdAt',
+			categories: 'id, listId',
+			items: 'id, listId, *categoryIds',
+			fields: 'id, listId'
+		});
+		await old.table('lists').add({
+			id: 'l1',
+			name: 'Spesa',
+			sort: { field: 'category', direction: 'asc' },
+			expiryWarningDays: 7,
+			createdAt: '2026-09-27T10:00:00.000Z',
+			updatedAt: '2026-09-27T10:00:00.000Z',
+			deletedAt: null
+		});
+		old.close();
+
+		const current = new ListoDatabase('migration-v4');
+		const list = await current.lists.get('l1');
+		expect(list?.sort).toEqual({ field: 'name', direction: 'asc' });
+		expect(list?.groupByCategory).toBe(true);
 		current.close();
 	});
 });

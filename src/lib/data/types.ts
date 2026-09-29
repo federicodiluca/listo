@@ -6,7 +6,7 @@ export type CalendarDate = string;
 /** Instant as an ISO 8601 string in UTC, e.g. `2026-09-27T13:45:00.000Z`. */
 export type Timestamp = string;
 
-export type SortField = 'addedOn' | 'name' | 'quantity' | 'category' | 'expiry';
+export type SortField = 'addedOn' | 'name' | 'quantity' | 'expiry';
 
 export type ListSort = { field: SortField; direction: 'asc' | 'desc' };
 
@@ -17,6 +17,11 @@ export type List = {
 	name: string;
 	/** How items are ordered; remembered per list. Added in schema version 2. */
 	sort: ListSort;
+	/**
+	 * Show items in one group per category (each item once, under its first category);
+	 * `sort` then orders items within each group. Schema v5.
+	 */
+	groupByCategory: boolean;
 	/** Items expiring within this many days are highlighted. Schema v4. */
 	expiryWarningDays: number;
 	createdAt: Timestamp;

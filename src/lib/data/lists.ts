@@ -29,6 +29,7 @@ function toCategory(listId: string, draft: CategoryDraft, position: number): Cat
 
 export type NewListOptions = {
 	sort?: ListSort;
+	groupByCategory?: boolean;
 	fields?: FieldDraft[];
 	expiryWarningDays?: number;
 };
@@ -37,7 +38,12 @@ export type NewListOptions = {
 export async function createList(
 	name: string,
 	categories: CategoryDraft[],
-	{ sort = defaultSort, fields = [], expiryWarningDays = 7 }: NewListOptions = {}
+	{
+		sort = defaultSort,
+		groupByCategory = true,
+		fields = [],
+		expiryWarningDays = 7
+	}: NewListOptions = {}
 ): Promise<string> {
 	const timestamp = now();
 	const list: List = {
@@ -45,6 +51,7 @@ export async function createList(
 		name: cleanName(name),
 		// plain copy: callers may pass Svelte $state proxies, which IndexedDB can't clone
 		sort: { field: sort.field, direction: sort.direction },
+		groupByCategory,
 		expiryWarningDays,
 		createdAt: timestamp,
 		updatedAt: timestamp,
@@ -62,6 +69,10 @@ export async function createList(
 
 export async function renameList(id: string, name: string): Promise<void> {
 	await db.lists.update(id, { name: cleanName(name), updatedAt: now() });
+}
+
+export async function setGroupByCategory(id: string, grouped: boolean): Promise<void> {
+	await db.lists.update(id, { groupByCategory: grouped, updatedAt: now() });
 }
 
 /** How many days before expiry items are highlighted (0 = only on the day). */
