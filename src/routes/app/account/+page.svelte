@@ -6,7 +6,9 @@
 	import { site } from '$lib/site';
 	import { sync } from '$lib/sync/sync.svelte';
 	import AppHeader from '$lib/ui/AppHeader.svelte';
+	import { installer } from '$lib/install.svelte';
 	import Icon from '$lib/ui/Icon.svelte';
+	import InstallButton from '$lib/ui/InstallButton.svelte';
 	import { onMount } from 'svelte';
 
 	// Load Google's script now, so that the popup can open right away on tap
@@ -134,6 +136,17 @@
 			</div>
 		{/if}
 	</section>
+
+	{#if !installer.installed}
+		<section>
+			<h2 class="text-lg font-semibold">App sul telefono</h2>
+			<p class="mt-2 text-muted">
+				Installando Listo avrai l'icona sulla schermata Home e l'app si aprirà a tutto schermo,
+				anche senza connessione.
+			</p>
+			<InstallButton class="{button} mt-4 w-full border border-line" />
+		</section>
+	{/if}
 
 	<section class="border-t border-line pt-6 text-sm text-muted">
 		<p>

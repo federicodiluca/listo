@@ -4,7 +4,9 @@
 	import { getListSummaries } from '$lib/data/lists';
 	import AppHeader from '$lib/ui/AppHeader.svelte';
 	import CategoryChip from '$lib/ui/CategoryChip.svelte';
+	import { installer } from '$lib/install.svelte';
 	import Icon from '$lib/ui/Icon.svelte';
+	import InstallButton from '$lib/ui/InstallButton.svelte';
 	import SyncIndicator from '$lib/ui/SyncIndicator.svelte';
 
 	const summaries = live(() => null, getListSummaries);
@@ -70,5 +72,17 @@
 		>
 			<Icon name="plus" /> Nuova lista
 		</a>
+	{/if}
+	{#if !installer.installed}
+		<aside class="mt-8 flex items-center gap-4 rounded-2xl border border-line bg-surface p-4">
+			<span class="text-accent"><Icon name="phone" size={28} /></span>
+			<p class="flex-1 text-sm">
+				<strong class="block">Tienila a portata di mano</strong>
+				<span class="text-muted">Installala: si apre con un tocco, anche senza rete.</span>
+			</p>
+			<InstallButton
+				class="flex shrink-0 items-center gap-1.5 rounded-xl bg-primary px-3 py-2 text-sm text-on-primary"
+			/>
+		</aside>
 	{/if}
 </main>
