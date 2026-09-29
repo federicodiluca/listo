@@ -2,8 +2,9 @@
 	import { resolve } from '$app/paths';
 	import { getListContext } from '$lib/data/list-context';
 	import { setListSort } from '$lib/data/lists';
+	import { expiryOf, expiryStatus } from '$lib/data/field-values';
 	import { colorValue } from '$lib/data/palette';
-	import type { Category } from '$lib/data/types';
+	import type { Category, Item } from '$lib/data/types';
 	import { filterItems, groupByCategory, sortItems } from '$lib/data/view';
 	import Icon from '$lib/ui/Icon.svelte';
 	import ItemRow from '$lib/ui/ItemRow.svelte';
@@ -19,24 +20,47 @@
 
 	let query = $state('');
 	let archived = $state(false);
+	let expiring = $state(false);
 	const selected = new SvelteSet<string>();
 
+	type Filters = { query: string; archived: boolean; expiring: boolean; selected: string[] };
+
 	// Restores filters when coming back from an item page (browser history)
-	export const snapshot: Snapshot<{ query: string; archived: boolean; selected: string[] }> = {
-		capture: () => ({ query, archived, selected: [...selected] }),
+	export const snapshot: Snapshot<Filters> = {
+		capture: () => ({ query, archived, expiring, selected: [...selected] }),
 		restore: (value) => {
 			query = value.query;
 			archived = value.archived;
+			expiring = value.expiring ?? false;
 			selected.clear();
 			for (const id of value.selected) selected.add(id);
 		}
 	};
 
-	const visible = $derived(filterItems(context.items, { archived, categoryIds: selected, query }));
+	const fields = $derived(context.summary.fields);
+	const hasExpiry = $derived(fields.some((f) => f.expiry));
+	const expiryFor = (item: Item) => expiryOf(item, fields);
+	/** Expired, or expiring within the list's warning threshold. */
+	const isExpiring = (item: Item) => {
+		const expiry = expiryFor(item);
+		return expiry !== null && expiryStatus(expiry, list.expiryWarningDays) !== 'ok';
+	};
+	const expiringCount = $derived(
+		context.items.filter((i) => !i.archivedAt && isExpiring(i)).length
+	);
+
+	const visible = $derived(
+		filterItems(context.items, {
+			archived,
+			categoryIds: selected,
+			query,
+			only: expiring && !archived ? isExpiring : undefined
+		})
+	);
 	const grouped = $derived(list.sort.field === 'category');
 	const groups = $derived(grouped ? groupByCategory(visible, categories, list.sort.direction) : []);
-	const sorted = $derived(grouped ? [] : sortItems(visible, list.sort));
-	const filtering = $derived(query.trim() !== '' || selected.size > 0);
+	const sorted = $derived(grouped ? [] : sortItems(visible, list.sort, expiryFor));
+	const filtering = $derived(query.trim() !== '' || selected.size > 0 || (expiring && !archived));
 	/** Items in the current view (active or archived) before filters, for "3 su 12". */
 	const total = $derived(context.items.filter((i) => (i.archivedAt !== null) === archived).length);
 
@@ -47,6 +71,7 @@
 
 	function clearFilters() {
 		query = '';
+		expiring = false;
 		selected.clear();
 	}
 </script>
@@ -71,7 +96,7 @@
 				bind:value={query}
 			/>
 		</label>
-		<SortSheet sort={list.sort} onchange={(sort) => setListSort(list.id, sort)} />
+		<SortSheet sort={list.sort} {hasExpiry} onchange={(sort) => setListSort(list.id, sort)} />
 		<button
 			class="grid size-10 shrink-0 place-items-center rounded-xl border {archived
 				? 'border-transparent bg-primary text-on-primary'
@@ -84,12 +109,28 @@
 		</button>
 	</div>
 
-	{#if categories.length}
+	{#if categories.length || (hasExpiry && !archived)}
 		<div
 			class="mt-3 flex gap-2 overflow-x-auto px-4 pb-1"
 			role="group"
-			aria-label="Filtra per categoria"
+			aria-label="Filtra per categoria o scadenza"
 		>
+			{#if hasExpiry && !archived}
+				<button
+					class="inline-flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1 text-sm {expiring
+						? 'border-accent bg-accent/20'
+						: 'border-line'}"
+					aria-pressed={expiring}
+					onclick={() => (expiring = !expiring)}
+				>
+					In scadenza
+					<span
+						class="rounded-full px-1.5 text-xs {expiringCount
+							? 'bg-accent text-on-primary'
+							: 'bg-bg'}">{expiringCount}</span
+					>
+				</button>
+			{/if}
 			{#each categories as category (category.id)}
 				{@const on = selected.has(category.id)}
 				<button
@@ -145,7 +186,9 @@
 				</h2>
 				<ul class="mt-1 divide-y divide-line border-y border-line bg-surface">
 					{#each group.items as item (item.id)}
-						<li><ItemRow {item} categories={byId} /></li>
+						<li>
+							<ItemRow {item} categories={byId} {fields} warningDays={list.expiryWarningDays} />
+						</li>
 					{/each}
 				</ul>
 			</section>
@@ -157,7 +200,9 @@
 		</p>
 		<ul class="mt-1 divide-y divide-line border-y border-line bg-surface">
 			{#each sorted as item (item.id)}
-				<li><ItemRow {item} categories={byId} /></li>
+				<li>
+					<ItemRow {item} categories={byId} {fields} warningDays={list.expiryWarningDays} />
+				</li>
 			{/each}
 		</ul>
 	{/if}

@@ -11,15 +11,41 @@
 		toggleItemCategory,
 		updateItem
 	} from '$lib/data/items';
+	import { addDuration, describeExpiry } from '$lib/data/field-values';
+	import { setItemField } from '$lib/data/fields';
 	import { getListContext } from '$lib/data/list-context';
 	import { colorValue } from '$lib/data/palette';
-	import type { ItemDraft } from '$lib/data/types';
+	import type { Duration, Field, FieldValue, ItemDraft } from '$lib/data/types';
+	import FieldInput from '$lib/ui/FieldInput.svelte';
 	import AppHeader from '$lib/ui/AppHeader.svelte';
 	import Icon from '$lib/ui/Icon.svelte';
 
 	const context = getListContext();
 	const list = $derived(context.summary.list);
 	const categories = $derived(context.summary.categories);
+	const fields = $derived(context.summary.fields);
+
+	async function saveField(field: Field, value: FieldValue | null) {
+		if (!item) return;
+		try {
+			await setItemField(item.id, field, value);
+			error = '';
+		} catch (e) {
+			error = e instanceof Error ? e.message : 'Valore non valido.';
+		}
+	}
+
+	/** For expiry fields: the resulting date, in words, under the input. */
+	function expiryHint(field: Field): string {
+		if (!item || !field.expiry) return '';
+		const value = item.extra[field.id];
+		if (field.type === 'date' && typeof value === 'string') return describeExpiry(value);
+		if (field.type === 'duration' && value && typeof value === 'object') {
+			const expiry = addDuration(item.addedOn, value as Duration);
+			return `Scade il ${formatDate(expiry)} · ${describeExpiry(expiry)}`;
+		}
+		return '';
+	}
 	const item = $derived(context.items.find((i) => i.id === page.params.itemId));
 	const back = $derived(resolve('/app/lista/[id]', { id: list.id }));
 
@@ -135,6 +161,23 @@
 				</datalist>
 			</div>
 		</div>
+
+		{#each fields as field (field.id)}
+			<div>
+				<label class="font-semibold" for="field-{field.id}">{field.name}</label>
+				<div class="mt-2">
+					<FieldInput
+						id="field-{field.id}"
+						{field}
+						value={item.extra[field.id]}
+						onchange={(value) => saveField(field, value)}
+					/>
+				</div>
+				{#if expiryHint(field)}
+					<p class="mt-1.5 text-sm text-muted">{expiryHint(field)}</p>
+				{/if}
+			</div>
+		{/each}
 
 		<div>
 			<h2 class="font-semibold">Categorie</h2>

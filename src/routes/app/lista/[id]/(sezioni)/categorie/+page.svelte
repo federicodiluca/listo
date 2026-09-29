@@ -1,12 +1,15 @@
 <script lang="ts">
 	import { getListContext } from '$lib/data/list-context';
+	import { setCategoryDefault } from '$lib/data/fields';
 	import { addCategory, deleteCategory, moveCategory, updateCategory } from '$lib/data/lists';
 	import CategoryRow from '$lib/ui/CategoryRow.svelte';
+	import FieldInput from '$lib/ui/FieldInput.svelte';
 	import NewCategoryForm from '$lib/ui/NewCategoryForm.svelte';
 
 	const context = getListContext();
 	const list = $derived(context.summary.list);
 	const categories = $derived(context.summary.categories);
+	const fields = $derived(context.summary.fields);
 
 	/** How many active items use each category, to warn before deleting it. */
 	const usage = $derived.by(() => {
@@ -45,7 +48,34 @@
 				onchange={(changes) => updateCategory(category.id, changes)}
 				onmove={(direction) => moveCategory(category.id, direction)}
 				ondelete={() => remove(category.id, category.name)}
-			/>
+			>
+				{#if fields.length}
+					{@const set = fields.filter((f) => f.id in category.defaults).length}
+					<details class="mt-2 ml-13 rounded-xl border border-line bg-surface px-3 py-2 text-sm">
+						<summary class="cursor-pointer text-muted">
+							Valori predefiniti{set ? ` · ${set}` : ''}
+						</summary>
+						<p class="mt-2 text-muted">
+							Quando dai questa categoria a un elemento, i suoi campi vuoti prendono questi valori.
+						</p>
+						{#each fields as field (field.id)}
+							<div class="mt-3">
+								<label class="font-medium" for="default-{category.id}-{field.id}"
+									>{field.name}</label
+								>
+								<div class="mt-1">
+									<FieldInput
+										id="default-{category.id}-{field.id}"
+										{field}
+										value={category.defaults[field.id]}
+										onchange={(value) => setCategoryDefault(category.id, field, value)}
+									/>
+								</div>
+							</div>
+						{/each}
+					</details>
+				{/if}
+			</CategoryRow>
 		{/each}
 	</ul>
 	<NewCategoryForm

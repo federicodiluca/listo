@@ -3,25 +3,32 @@
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
 	import { createList } from '$lib/data/lists';
-	import { templates, type ListTemplate } from '$lib/data/templates';
-	import type { CategoryDraft } from '$lib/data/types';
+	import { templateGroups, templates, type ListTemplate } from '$lib/data/templates';
+	import type { CategoryDraft, FieldDraft } from '$lib/data/types';
 	import AppHeader from '$lib/ui/AppHeader.svelte';
 	import CategoryChip from '$lib/ui/CategoryChip.svelte';
 	import CategoryRow from '$lib/ui/CategoryRow.svelte';
+	import FieldRow from '$lib/ui/FieldRow.svelte';
 	import Icon from '$lib/ui/Icon.svelte';
 	import NewCategoryForm from '$lib/ui/NewCategoryForm.svelte';
+	import NewFieldForm from '$lib/ui/NewFieldForm.svelte';
 	import { onMount } from 'svelte';
+
+	type Keyed<T> = T & { key: string };
+	const keyed = <T extends object>(value: T): Keyed<T> => ({ ...value, key: crypto.randomUUID() });
 
 	let template = $state<ListTemplate>();
 	let name = $state('');
 	// Drafts live only in memory until "Crea lista": each needs a stable key for {#each}
-	let drafts = $state<(CategoryDraft & { key: string })[]>([]);
+	let drafts = $state<Keyed<CategoryDraft>[]>([]);
+	let fieldDrafts = $state<Keyed<FieldDraft>[]>([]);
 	let error = $state('');
 
 	function choose(chosen: ListTemplate) {
 		template = chosen;
 		name = chosen.id === 'vuota' ? '' : chosen.name;
-		drafts = chosen.categories.map((c) => ({ ...c, key: crypto.randomUUID() }));
+		drafts = chosen.categories.map(keyed);
+		fieldDrafts = chosen.fields.map(keyed);
 	}
 
 	// Coming from a use-case page ("Crea la lista Congelatore"): start from that template
@@ -30,15 +37,19 @@
 		if (preset) choose(preset);
 	});
 
-	function move(index: number, direction: -1 | 1) {
+	function swap<T>(items: T[], index: number, direction: -1 | 1) {
 		const target = index + direction;
-		[drafts[index], drafts[target]] = [drafts[target], drafts[index]];
+		[items[index], items[target]] = [items[target], items[index]];
 	}
 
 	async function create(event: SubmitEvent) {
 		event.preventDefault();
 		try {
-			const id = await createList(name, drafts, template?.sort);
+			const id = await createList(name, drafts, {
+				sort: template?.sort,
+				fields: fieldDrafts,
+				expiryWarningDays: template?.expiryWarningDays
+			});
 			// replaceState: "back" from the new list goes to the overview, not to this form
 			await goto(resolve('/app/lista/[id]', { id }), { replaceState: true });
 		} catch (e) {
@@ -57,29 +68,39 @@
 	{#if !template}
 		<h2 class="text-lg font-semibold">Da dove partiamo?</h2>
 		<p class="mt-1 text-muted">Scegli un modello: potrai cambiare tutto subito dopo.</p>
-		<ul class="mt-4 grid gap-3 sm:grid-cols-2">
-			{#each templates as candidate (candidate.id)}
-				<li>
-					<button
-						class="flex h-full w-full flex-col items-start gap-2 rounded-2xl border border-line bg-surface p-4 text-left"
-						onclick={() => choose(candidate)}
-					>
-						<span class="grid size-11 place-items-center rounded-xl bg-bg text-accent">
-							<Icon name={candidate.icon} size={24} />
-						</span>
-						<span class="font-semibold">{candidate.name}</span>
-						<span class="text-sm text-muted">{candidate.description}</span>
-						{#if candidate.categories.length}
-							<span class="mt-1 flex flex-wrap gap-1">
-								{#each candidate.categories as category (category.name)}
-									<CategoryChip {category} />
-								{/each}
+		{#each templateGroups as group (group.id)}
+			<h3 class="mt-6 text-sm font-semibold text-muted">{group.label}</h3>
+			<ul class="mt-2 grid gap-3 sm:grid-cols-2">
+				{#each templates.filter((t) => t.group === group.id) as candidate (candidate.id)}
+					<li>
+						<button
+							class="flex h-full w-full flex-col items-start gap-2 rounded-2xl border border-line bg-surface p-4 text-left"
+							onclick={() => choose(candidate)}
+						>
+							<span class="flex items-center gap-3">
+								<span class="grid size-10 place-items-center rounded-xl bg-bg text-accent">
+									<Icon name={candidate.icon} size={22} />
+								</span>
+								<span class="font-semibold">{candidate.name}</span>
 							</span>
-						{/if}
-					</button>
-				</li>
-			{/each}
-		</ul>
+							<span class="text-sm text-muted">{candidate.description}</span>
+							{#if candidate.categories.length}
+								<span class="mt-1 flex flex-wrap gap-1">
+									{#each candidate.categories.slice(0, 4) as category (category.name)}
+										<CategoryChip {category} />
+									{/each}
+									{#if candidate.categories.length > 4}
+										<span class="px-1 py-0.5 text-sm text-muted"
+											>+{candidate.categories.length - 4}</span
+										>
+									{/if}
+								</span>
+							{/if}
+						</button>
+					</li>
+				{/each}
+			</ul>
+		{/each}
 	{:else}
 		<form id="new-list" onsubmit={create}>
 			<label class="block font-semibold" for="list-name">Nome della lista</label>
@@ -104,15 +125,35 @@
 					first={i === 0}
 					last={i === drafts.length - 1}
 					onchange={(changes) => Object.assign(drafts[i], changes)}
-					onmove={(direction) => move(i, direction)}
+					onmove={(direction) => swap(drafts, i, direction)}
 					ondelete={() => drafts.splice(i, 1)}
 				/>
 			{/each}
 		</ul>
 		<NewCategoryForm
 			usedColors={drafts.map((d) => d.color)}
-			onadd={(draft) => drafts.push({ ...draft, key: crypto.randomUUID() })}
+			onadd={(draft) => drafts.push(keyed(draft))}
 		/>
+
+		<h2 class="mt-8 font-semibold">Campi</h2>
+		<p class="mt-1 text-sm text-muted">
+			{fieldDrafts.length
+				? 'Informazioni in più per ogni elemento. Togli quelle che non ti servono.'
+				: 'Nessun campo extra. Puoi aggiungerne ora o in qualsiasi momento dalle impostazioni.'}
+		</p>
+		<ul class="mt-2 divide-y divide-line">
+			{#each fieldDrafts as field, i (field.key)}
+				<FieldRow
+					{field}
+					first={i === 0}
+					last={i === fieldDrafts.length - 1}
+					onchange={(changes) => Object.assign(fieldDrafts[i], changes)}
+					onmove={(direction) => swap(fieldDrafts, i, direction)}
+					ondelete={() => fieldDrafts.splice(i, 1)}
+				/>
+			{/each}
+		</ul>
+		<NewFieldForm onadd={(draft) => fieldDrafts.push(keyed(draft))} />
 
 		{#if error}<p class="mt-4 text-danger" role="alert">{error}</p>{/if}
 

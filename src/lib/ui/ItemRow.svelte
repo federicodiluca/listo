@@ -1,11 +1,22 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
 	import { formatAge, formatDate } from '$lib/data/dates';
+	import { describeExpiry, expiryOf, expiryStatus, formatFieldValue } from '$lib/data/field-values';
 	import { formatQuantity } from '$lib/data/items';
-	import type { Category, Item } from '$lib/data/types';
+	import type { Category, Field, Item } from '$lib/data/types';
 	import CategoryBadge from './CategoryBadge.svelte';
 
-	let { item, categories }: { item: Item; categories: ReadonlyMap<string, Category> } = $props();
+	let {
+		item,
+		categories,
+		fields,
+		warningDays
+	}: {
+		item: Item;
+		categories: ReadonlyMap<string, Category>;
+		fields: readonly Field[];
+		warningDays: number;
+	} = $props();
 
 	const tags = $derived(
 		item.categoryIds.map((id) => categories.get(id)).filter((c): c is Category => c !== undefined)
@@ -15,11 +26,17 @@
 			formatQuantity(item.quantity, item.unit),
 			item.archivedAt
 				? `archiviato il ${formatDate(item.archivedAt.slice(0, 10))}`
-				: formatAge(item.addedOn)
+				: formatAge(item.addedOn),
+			// fields shown in the list; expiry fields have their own badge instead
+			...fields
+				.filter((f) => f.showInList && !f.expiry)
+				.map((f) => formatFieldValue(f, item.extra[f.id]))
 		]
 			.filter(Boolean)
 			.join(' · ')
 	);
+	const expiry = $derived(item.archivedAt ? null : expiryOf(item, fields));
+	const status = $derived(expiry ? expiryStatus(expiry, warningDays) : null);
 </script>
 
 <a
@@ -33,6 +50,15 @@
 					· {tags.map((t) => t.name).join(', ')}</span
 				>{/if}
 		</span>
+		{#if expiry && status}
+			<span
+				class="mt-1 inline-block rounded-md px-1.5 py-0.5 text-xs font-medium {status === 'expired'
+					? 'bg-danger/15 text-danger'
+					: status === 'soon'
+						? 'bg-accent/20 text-ink'
+						: 'bg-bg text-muted'}">{describeExpiry(expiry)}</span
+			>
+		{/if}
 	</span>
 	{#if tags.length}
 		<span class="flex shrink-0 -space-x-1.5">

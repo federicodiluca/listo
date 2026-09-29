@@ -23,7 +23,8 @@
 	const dot = $derived(
 		sync.status === 'error' || sync.status === 'needs-auth'
 			? 'bg-danger'
-			: sync.status === 'syncing' || sync.pending
+			: // pending changes only matter when there is somewhere to send them
+				sync.status === 'syncing' || (sync.enabled && sync.pending)
 				? 'bg-accent animate-pulse'
 				: ''
 	);

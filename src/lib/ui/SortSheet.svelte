@@ -15,7 +15,8 @@
 			label: 'Categoria',
 			asc: 'Nell’ordine delle categorie',
 			desc: 'In ordine inverso'
-		}
+		},
+		{ field: 'expiry', label: 'Scadenza', asc: 'Prima le più vicine', desc: 'Prima le più lontane' }
 	];
 
 	/** Short description of a sort, for the toolbar button. */
@@ -27,7 +28,18 @@
 <script lang="ts">
 	import Icon from './Icon.svelte';
 
-	let { sort, onchange }: { sort: ListSort; onchange: (sort: ListSort) => void } = $props();
+	let {
+		sort,
+		onchange,
+		hasExpiry
+	}: {
+		sort: ListSort;
+		onchange: (sort: ListSort) => void;
+		/** The "by expiry" order only makes sense if the list has an expiry field. */
+		hasExpiry: boolean;
+	} = $props();
+
+	const available = $derived(options.filter((o) => o.field !== 'expiry' || hasExpiry));
 
 	const id = $props.id();
 	let sheet: HTMLElement;
@@ -50,7 +62,7 @@
 <div popover id="{id}-sort" class="sheet" bind:this={sheet}>
 	<h2 class="mb-2 font-semibold">Ordina per</h2>
 	<ul class="divide-y divide-line">
-		{#each options as option (option.field)}
+		{#each available as option (option.field)}
 			{@const selected = option.field === sort.field}
 			<li class="py-3">
 				<p class:font-semibold={selected}>{option.label}</p>
