@@ -7,6 +7,7 @@
  *   static/icons/maskable-512.png   full-bleed background, artwork inside the safe zone:
  *                                   Android crops it to a circle, squircle… per device
  *   static/apple-touch-icon.png     180×180 full-bleed: iOS rounds the corners itself
+ *   static/og-image.png             1200×630 preview for links shared on social apps
  */
 import { mkdirSync, readFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
@@ -42,4 +43,17 @@ await render(Buffer.from(logo), 512).toFile(out('icons/icon-512.png'));
 await render(fullBleed(0.8), 512).toFile(out('icons/maskable-512.png'));
 await render(fullBleed(0.9), 180).toFile(out('apple-touch-icon.png'));
 
-console.log('icone aggiornate: icon-192, icon-512, maskable-512, apple-touch-icon');
+// Social preview: logo, name and tagline on the brand dark. Text is rasterised here, with
+// the fonts of the machine that runs the script, and the PNG is committed.
+const ogImage = `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+	<rect width="1200" height="630" fill="${background}"/>
+	<g transform="translate(96 150) scale(5.2)">${logo.replace(/<\/?svg[^>]*>/g, '')}</g>
+	<g font-family="Segoe UI, Helvetica, Arial, sans-serif" fill="#FFF1DE">
+		<text x="480" y="270" font-size="112" font-weight="700">Listo</text>
+		<text x="484" y="350" font-size="40" fill="#FF7A1A" font-weight="600">Liste con categorie multiple</text>
+		<text x="484" y="420" font-size="32" opacity="0.8">Congelatore, dispensa, spesa. Gratis e offline.</text>
+	</g>
+</svg>`;
+await sharp(Buffer.from(ogImage)).png().toFile(out('og-image.png'));
+
+console.log('immagini aggiornate: icon-192, icon-512, maskable-512, apple-touch-icon, og-image');
