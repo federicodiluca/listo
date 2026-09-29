@@ -33,6 +33,7 @@ function item(listId: string, categoryIds: string[]): Item {
 		categoryIds,
 		addedOn: '2026-09-27',
 		note: '',
+		extra: {},
 		archivedAt: null,
 		createdAt: timestamp,
 		updatedAt: timestamp,

@@ -9,6 +9,7 @@ const category = (id: string, position: number): Category => ({
 	name: id,
 	color: 'grigio',
 	position,
+	defaults: {},
 	updatedAt: '',
 	deletedAt: null
 });
@@ -22,6 +23,7 @@ const item = (name: string, fields: Partial<Item> = {}): Item => ({
 	categoryIds: [],
 	addedOn: '2026-09-01',
 	note: '',
+	extra: {},
 	archivedAt: null,
 	createdAt: '',
 	updatedAt: '',
@@ -97,6 +99,39 @@ describe('sortItems', () => {
 			'Minestrone',
 			'ali di pollo'
 		]);
+	});
+});
+
+describe('sortItems by expiry', () => {
+	const expiries: Record<string, string | null> = {
+		Pesce: '2026-10-01',
+		Pane: null,
+		Carne: '2026-09-30'
+	};
+	const items = [item('Pesce'), item('Pane'), item('Carne')];
+	const expiry = (i: Item) => expiries[i.name];
+
+	it('puts what expires first on top, items without expiry at the bottom', () => {
+		expect(names(sortItems(items, { field: 'expiry', direction: 'asc' }, expiry))).toEqual([
+			'Carne',
+			'Pesce',
+			'Pane'
+		]);
+		expect(names(sortItems(items, { field: 'expiry', direction: 'desc' }, expiry))).toEqual([
+			'Pesce',
+			'Carne',
+			'Pane'
+		]);
+	});
+
+	it('filters with a custom test', () => {
+		const filter = {
+			archived: false,
+			categoryIds: new Set<string>(),
+			query: '',
+			only: (i: Item) => expiry(i) !== null
+		};
+		expect(names(filterItems(items, filter))).toEqual(['Pesce', 'Carne']);
 	});
 });
 

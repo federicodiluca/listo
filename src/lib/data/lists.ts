@@ -1,6 +1,15 @@
 import { db } from './db';
 import { cleanName, firstGrapheme } from './text';
-import { defaultSort, type Category, type CategoryDraft, type List, type ListSort } from './types';
+import { getFields, toField } from './fields';
+import {
+	defaultSort,
+	type Category,
+	type CategoryDraft,
+	type Field,
+	type FieldDraft,
+	type List,
+	type ListSort
+} from './types';
 
 const now = () => new Date().toISOString();
 
@@ -12,16 +21,18 @@ function toCategory(listId: string, draft: CategoryDraft, position: number): Cat
 		name: cleanName(draft.name),
 		color: draft.color,
 		position,
+		defaults: {},
 		updatedAt: now(),
 		deletedAt: null
 	};
 }
 
-/** Creates a list together with its initial categories; resolves with the list id. */
+/** Creates a list with its initial categories and custom fields; resolves with the list id. */
 export async function createList(
 	name: string,
 	categories: CategoryDraft[],
-	sort: ListSort = defaultSort
+	sort: ListSort = defaultSort,
+	fields: FieldDraft[] = []
 ): Promise<string> {
 	const timestamp = now();
 	const list: List = {
@@ -29,20 +40,30 @@ export async function createList(
 		name: cleanName(name),
 		// plain copy: callers may pass Svelte $state proxies, which IndexedDB can't clone
 		sort: { field: sort.field, direction: sort.direction },
+		expiryWarningDays: 7,
 		createdAt: timestamp,
 		updatedAt: timestamp,
 		deletedAt: null
 	};
 	const rows = categories.map((draft, i) => toCategory(list.id, draft, i));
-	await db.transaction('rw', db.lists, db.categories, async () => {
+	const fieldRows = fields.map((draft, i) => toField(list.id, draft, i));
+	await db.transaction('rw', db.lists, db.categories, db.fields, async () => {
 		await db.lists.add(list);
 		await db.categories.bulkAdd(rows);
+		await db.fields.bulkAdd(fieldRows);
 	});
 	return list.id;
 }
 
 export async function renameList(id: string, name: string): Promise<void> {
 	await db.lists.update(id, { name: cleanName(name), updatedAt: now() });
+}
+
+/** How many days before expiry items are highlighted (0 = only on the day). */
+export async function setExpiryWarningDays(id: string, days: number): Promise<void> {
+	if (!Number.isInteger(days) || days < 0 || days > 365)
+		throw new Error('Numero di giorni non valido.');
+	await db.lists.update(id, { expiryWarningDays: days, updatedAt: now() });
 }
 
 export async function setListSort(id: string, sort: ListSort): Promise<void> {
@@ -58,8 +79,9 @@ export async function setListSort(id: string, sort: ListSort): Promise<void> {
  */
 export async function deleteList(id: string): Promise<void> {
 	const tombstone = { deletedAt: now(), updatedAt: now() };
-	await db.transaction('rw', db.lists, db.categories, db.items, async () => {
+	await db.transaction('rw', db.lists, db.categories, db.items, db.fields, async () => {
 		await db.items.where('listId').equals(id).modify(tombstone);
+		await db.fields.where('listId').equals(id).modify(tombstone);
 		await db.categories.where('listId').equals(id).modify(tombstone);
 		await db.lists.update(id, tombstone);
 	});
@@ -135,27 +157,31 @@ export async function deleteCategory(id: string): Promise<void> {
 	});
 }
 
-export type ListSummary = { list: List; categories: Category[] };
+export type ListSummary = { list: List; categories: Category[]; fields: Field[] };
 
 /** Every list, oldest first, each with its categories in order. */
 export async function getListSummaries(): Promise<ListSummary[]> {
-	const [lists, categories] = await Promise.all([
+	const [lists, categories, fields] = await Promise.all([
 		db.lists
 			.orderBy('createdAt')
 			.filter((l) => !l.deletedAt)
 			.toArray(),
-		db.categories.filter((c) => !c.deletedAt).toArray()
+		db.categories.filter((c) => !c.deletedAt).toArray(),
+		db.fields.filter((f) => !f.deletedAt).toArray()
 	]);
 	return lists.map((list) => ({
 		list,
 		categories: categories
 			.filter((c) => c.listId === list.id)
-			.sort((a, b) => a.position - b.position)
+			.sort((a, b) => a.position - b.position),
+		fields: fields.filter((f) => f.listId === list.id).sort((a, b) => a.position - b.position)
 	}));
 }
 
 /** A list with its categories, or `null` if it doesn't exist (e.g. deleted elsewhere). */
 export async function getListSummary(id: string): Promise<ListSummary | null> {
 	const list = await db.lists.get(id);
-	return list && !list.deletedAt ? { list, categories: await getCategories(id) } : null;
+	if (!list || list.deletedAt) return null;
+	const [categories, fields] = await Promise.all([getCategories(id), getFields(id)]);
+	return { list, categories, fields };
 }

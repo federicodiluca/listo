@@ -1,5 +1,12 @@
 import { Dexie, type EntityTable } from 'dexie';
-import { defaultSort, type Category, type Item, type List, type SyncedRecord } from './types';
+import {
+	defaultSort,
+	type Category,
+	type Field,
+	type Item,
+	type List,
+	type SyncedRecord
+} from './types';
 
 /**
  * The local database (IndexedDB, through Dexie). It is the only source the UI reads
@@ -9,6 +16,7 @@ export class ListoDatabase extends Dexie {
 	lists!: EntityTable<List, 'id'>;
 	categories!: EntityTable<Category, 'id'>;
 	items!: EntityTable<Item, 'id'>;
+	fields!: EntityTable<Field, 'id'>;
 
 	constructor(name = 'listo') {
 		super(name);
@@ -42,6 +50,30 @@ export class ListoDatabase extends Dexie {
 					});
 			}
 		});
+		// v4: custom fields. A new table (so stores() this time) plus empty defaults on
+		// existing records.
+		this.version(4)
+			.stores({ fields: 'id, listId' })
+			.upgrade(async (tx) => {
+				await tx
+					.table<List>('lists')
+					.toCollection()
+					.modify((list) => {
+						list.expiryWarningDays ??= 7;
+					});
+				await tx
+					.table<Category>('categories')
+					.toCollection()
+					.modify((category) => {
+						category.defaults ??= {};
+					});
+				await tx
+					.table<Item>('items')
+					.toCollection()
+					.modify((item) => {
+						item.extra ??= {};
+					});
+			});
 	}
 }
 

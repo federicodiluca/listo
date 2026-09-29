@@ -5,7 +5,7 @@ import { ListoDatabase } from './db';
 import { defaultSort } from './types';
 
 describe('schema migrations', () => {
-	it('v1 → v3 adds the default sort order and the tombstone field', async () => {
+	it('v1 → v4 adds sort order, tombstones and custom field defaults', async () => {
 		// A database as the first release left it: version 1, lists without `sort`
 		const old = new Dexie('migration-test');
 		old.version(1).stores({
@@ -26,6 +26,8 @@ describe('schema migrations', () => {
 		expect(list?.sort).toEqual(defaultSort);
 		expect(list?.name).toBe('Congelatore');
 		expect(list?.deletedAt).toBeNull(); // v3
+		expect(list?.expiryWarningDays).toBe(7); // v4
+		expect(await current.fields.count()).toBe(0); // v4: new table
 		current.close();
 	});
 });

@@ -1,6 +1,7 @@
 import { isCalendarDate, today } from './dates';
 import { db } from './db';
 import { cleanName } from './text';
+import { withDefaults } from './field-values';
 import type { Item, ItemDraft } from './types';
 
 const now = () => new Date().toISOString();
@@ -38,6 +39,7 @@ export async function addItem(listId: string, name: string): Promise<string> {
 		categoryIds: [],
 		addedOn: today(),
 		note: '',
+		extra: {},
 		archivedAt: null,
 		createdAt: timestamp,
 		updatedAt: timestamp,
@@ -79,15 +81,26 @@ export async function updateItem(id: string, changes: Partial<ItemDraft>): Promi
 	await db.items.update(id, update);
 }
 
-/** Adds the category if missing, removes it if present. */
+/**
+ * Adds the category if missing, removes it if present. Adding it also fills the item's
+ * empty custom fields with the category's defaults (e.g. "Carne" → keeps 6 months).
+ */
 export async function toggleItemCategory(id: string, categoryId: string): Promise<void> {
-	await db.transaction('rw', db.items, async () => {
+	await db.transaction('rw', db.items, db.categories, async () => {
 		const item = await db.items.get(id);
 		if (!item) return;
-		const categoryIds = item.categoryIds.includes(categoryId)
-			? item.categoryIds.filter((c) => c !== categoryId)
-			: [...item.categoryIds, categoryId];
-		await db.items.update(id, { categoryIds, updatedAt: now() });
+		if (item.categoryIds.includes(categoryId)) {
+			const categoryIds = item.categoryIds.filter((c) => c !== categoryId);
+			await db.items.update(id, { categoryIds, updatedAt: now() });
+			return;
+		}
+		const category = await db.categories.get(categoryId);
+		const extra = (category && withDefaults(item.extra, category.defaults)) ?? item.extra;
+		await db.items.update(id, {
+			categoryIds: [...item.categoryIds, categoryId],
+			extra,
+			updatedAt: now()
+		});
 	});
 }
 
