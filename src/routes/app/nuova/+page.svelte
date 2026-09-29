@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
+	import { page } from '$app/state';
 	import { createList } from '$lib/data/lists';
 	import { templates, type ListTemplate } from '$lib/data/templates';
 	import type { CategoryDraft } from '$lib/data/types';
@@ -9,6 +10,7 @@
 	import CategoryRow from '$lib/ui/CategoryRow.svelte';
 	import Icon from '$lib/ui/Icon.svelte';
 	import NewCategoryForm from '$lib/ui/NewCategoryForm.svelte';
+	import { onMount } from 'svelte';
 
 	let template = $state<ListTemplate>();
 	let name = $state('');
@@ -21,6 +23,12 @@
 		name = chosen.id === 'vuota' ? '' : chosen.name;
 		drafts = chosen.categories.map((c) => ({ ...c, key: crypto.randomUUID() }));
 	}
+
+	// Coming from a use-case page ("Crea la lista Congelatore"): start from that template
+	onMount(() => {
+		const preset = templates.find((t) => t.id === page.url.searchParams.get('modello'));
+		if (preset) choose(preset);
+	});
 
 	function move(index: number, direction: -1 | 1) {
 		const target = index + direction;
