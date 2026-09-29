@@ -18,12 +18,9 @@ let listId: string;
 beforeEach(async () => {
 	await db.delete();
 	await db.open();
-	listId = await createList(
-		'Congelatore',
-		[{ emoji: '🥩', name: 'Carne', color: 'rosso' }],
-		undefined,
-		[{ name: 'Si conserva per', type: 'duration', expiry: true, showInList: false }]
-	);
+	listId = await createList('Congelatore', [{ emoji: '🥩', name: 'Carne', color: 'rosso' }], {
+		fields: [{ name: 'Si conserva per', type: 'duration', expiry: true, showInList: false }]
+	});
 });
 
 describe('fields', () => {

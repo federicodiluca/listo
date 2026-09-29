@@ -27,12 +27,17 @@ function toCategory(listId: string, draft: CategoryDraft, position: number): Cat
 	};
 }
 
+export type NewListOptions = {
+	sort?: ListSort;
+	fields?: FieldDraft[];
+	expiryWarningDays?: number;
+};
+
 /** Creates a list with its initial categories and custom fields; resolves with the list id. */
 export async function createList(
 	name: string,
 	categories: CategoryDraft[],
-	sort: ListSort = defaultSort,
-	fields: FieldDraft[] = []
+	{ sort = defaultSort, fields = [], expiryWarningDays = 7 }: NewListOptions = {}
 ): Promise<string> {
 	const timestamp = now();
 	const list: List = {
@@ -40,7 +45,7 @@ export async function createList(
 		name: cleanName(name),
 		// plain copy: callers may pass Svelte $state proxies, which IndexedDB can't clone
 		sort: { field: sort.field, direction: sort.direction },
-		expiryWarningDays: 7,
+		expiryWarningDays,
 		createdAt: timestamp,
 		updatedAt: timestamp,
 		deletedAt: null

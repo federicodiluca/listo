@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
+	import { templates } from '$lib/data/templates';
 	import { faqPage, webApplication, type Faq } from '$lib/seo/jsonld';
 	import Seo from '$lib/seo/Seo.svelte';
 	import AppPreview from '$lib/site-ui/AppPreview.svelte';
@@ -34,11 +35,16 @@
 			text: 'Quando finisci qualcosa lo archivi. La volta dopo lo ritrovi mentre scrivi, con le sue categorie già pronte.'
 		},
 		{
-			icon: 'sort',
-			title: 'Date, quantità e note',
-			text: 'Sai da quanto tempo è in freezer e quanto ne resta. Ordini per data, nome, quantità o categoria.'
+			icon: 'settings',
+			title: 'Campi su misura e scadenze',
+			text: 'Aggiungi i campi che ti servono: scadenza, durata di conservazione, marca, posizione. Listo ti mostra cosa sta per scadere.'
 		}
 	];
+
+	/** Non-food templates, to show that lists are not only for the kitchen. */
+	const otherTemplates = templates.filter(
+		(t) => t.group === 'oggetti' || t.group === 'organizzazione' || t.id === 'medicinali'
+	);
 
 	const useCases = [
 		{
@@ -86,6 +92,11 @@
 			question: 'Posso usarla su telefono e computer insieme?',
 			answer:
 				'Sì, collegando lo stesso account Google su entrambi: le liste restano allineate tramite un foglio nel tuo Drive.'
+		},
+		{
+			question: 'Posso usarla anche per cose che non sono cibo?',
+			answer:
+				'Certo: le categorie e i campi li decidi tu. Ci sono modelli per medicinali, garage e magazzino, ufficio, libri e cose da fare, oppure parti da zero.'
 		},
 		{
 			question: 'Come si installa sul telefono?',
@@ -213,6 +224,33 @@
 							>Scopri come <Icon name="chevron" size={16} /></span
 						>
 					</a>
+				</li>
+			{/each}
+		</ul>
+	</section>
+
+	<!-- Not only food: the engine is generic -->
+	<section class="mx-auto max-w-5xl px-4 py-12">
+		<h2 class="text-center text-2xl font-bold sm:text-3xl">Non solo cucina</h2>
+		<p class="mx-auto mt-3 max-w-2xl text-center text-muted">
+			Categorie e campi li decidi tu, quindi Listo va bene per qualsiasi cosa tu voglia tenere in
+			ordine. Qualche modello per cominciare:
+		</p>
+		<ul class="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+			{#each otherTemplates as template (template.id)}
+				<li class="flex gap-4 rounded-2xl border border-line bg-surface p-5">
+					<span class="grid size-11 shrink-0 place-items-center rounded-xl bg-bg text-accent">
+						<Icon name={template.icon} size={22} />
+					</span>
+					<span>
+						<h3 class="font-semibold">{template.name}</h3>
+						<p class="mt-1 text-sm text-muted">{template.description}</p>
+						{#if template.fields.length}
+							<p class="mt-2 text-xs text-muted">
+								Campi: {template.fields.map((f) => f.name).join(', ')}
+							</p>
+						{/if}
+					</span>
 				</li>
 			{/each}
 		</ul>

@@ -14,6 +14,11 @@
 				'Ordina la lista per data di aggiunta, «prima i più vecchi»: è anche l’ordine predefinito del modello Congelatore.'
 		},
 		{
+			question: 'Listo mi avvisa quando qualcosa sta per scadere?',
+			answer:
+				'Sì. Nel campo «Si conserva per» indichi per quanto tempo può restare in freezer: Listo calcola la scadenza dalla data di aggiunta, la evidenzia quando si avvicina e ti permette di filtrare solo gli alimenti in scadenza.'
+		},
+		{
 			question: 'Cosa succede quando finisco un alimento?',
 			answer:
 				'Lo archivi. Non sparisce: la prossima volta che lo scrivi nella barra di aggiunta, Listo te lo propone con le stesse categorie e unità.'
@@ -65,8 +70,13 @@
 			niente.
 		</li>
 		<li>
-			Per i tempi di conservazione affidati sempre all'etichetta e alle indicazioni del produttore:
-			nella nota di ogni elemento puoi segnarti una scadenza o un promemoria.
+			Nel campo «Si conserva per» segna la durata che trovi in etichetta: Listo calcola la scadenza
+			e te la mostra in lista, evidenziata quando si avvicina.
+		</li>
+		<li>
+			Se congeli spesso le stesse cose, dai una durata predefinita a ogni categoria: ogni nuovo
+			elemento la prende da solo. Per i tempi di conservazione affidati sempre alle indicazioni del
+			produttore.
 		</li>
 	</ul>
 

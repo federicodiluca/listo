@@ -8,6 +8,11 @@ Nasce da un problema concreto: l'inventario del congelatore su Google Keep, dove
 minestrone pronto non può stare sia sotto "verdure" sia sotto "piatti pronti". Listo
 non è un inventario fisso: ognuno crea le proprie liste e le proprie categorie.
 
+Ogni lista può avere anche **campi su misura** (data, durata, numero, testo, sì/no): una
+data o una durata possono fare da scadenza, e Listo evidenzia, ordina e filtra ciò che sta
+per scadere. Ci sono modelli pronti per congelatore, dispensa, spesa, medicinali, garage,
+ufficio, libri e cose da fare.
+
 ## Come funziona
 
 - **Nessun server, nessun dato raccolto.** L'app è un sito statico. I dati restano sul

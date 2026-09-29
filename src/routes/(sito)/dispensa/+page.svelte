@@ -58,6 +58,9 @@
 			Quando un prodotto finisce archivialo: alla prossima spesa lo ripeschi con un tocco, con le
 			sue categorie già pronte.
 		</li>
-		<li>Usa la nota per la scadenza o per ricordarti la marca che preferisci.</li>
+		<li>
+			Segna la scadenza nel suo campo: con il filtro «In scadenza» vedi subito cosa consumare prima.
+			Nella nota puoi ricordarti la marca che preferisci.
+		</li>
 	</ul>
 </UseCase>
