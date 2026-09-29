@@ -21,6 +21,10 @@ non è un inventario fisso: ognuno crea le proprie liste e le proprie categorie.
   legge, unisce i dati record per record (vince la modifica più recente) e lo riscrive
   solo se serve. L'app chiede solo il permesso `drive.file`, quindi vede esclusivamente
   il file che ha creato lei.
+- **PWA installabile, anche offline.** Un service worker scritto a mano
+  (`src/service-worker.ts`) tiene in cache l'app: il codice con hash dalla cache, le
+  pagine dalla rete con un limite di 3 secondi e poi dalla cache. Con i dati già in
+  IndexedDB, l'app si apre e si usa anche senza rete.
 - **Landing pre-renderizzata, app lato client.** Le pagine pubbliche sono HTML statico
   indicizzabile; l'area `/app` gira solo nel browser ed è esclusa dall'indicizzazione.
 
@@ -35,6 +39,7 @@ npm test         # test unitari (Vitest)
 npm run check    # controllo dei tipi (svelte-check)
 npm run lint     # Prettier + ESLint
 npm run build    # sito statico in build/
+npm run icons:build  # rigenera le icone PNG da static/favicon.svg
 ```
 
 Stack: SvelteKit (Svelte 5) con `adapter-static`, TypeScript, Tailwind CSS, Vitest.

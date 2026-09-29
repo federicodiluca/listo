@@ -14,7 +14,10 @@ export default defineConfig({
 			},
 			// GitHub Pages serves 404.html for every path it doesn't know: using it as the
 			// SPA fallback lets client-only routes (e.g. /app/lista/<id>) boot the app.
-			adapter: adapter({ fallback: '404.html' })
+			adapter: adapter({ fallback: '404.html' }),
+			// An installed app can stay open for days: check every 5 minutes whether a new
+			// version was deployed (see the app layout, which then reloads on navigation)
+			version: { pollInterval: 5 * 60_000 }
 		})
 	],
 	test: {

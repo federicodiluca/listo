@@ -1,0 +1,45 @@
+/*
+ * Regenerates the app icons from static/favicon.svg (the logo source of truth).
+ * Run after changing the logo: `npm run icons:build`.
+ *
+ *   static/icons/icon-192.png       rounded logo, transparent corners ("any" purpose)
+ *   static/icons/icon-512.png       same, large
+ *   static/icons/maskable-512.png   full-bleed background, artwork inside the safe zone:
+ *                                   Android crops it to a circle, squircle… per device
+ *   static/apple-touch-icon.png     180×180 full-bleed: iOS rounds the corners itself
+ */
+import { mkdirSync, readFileSync } from 'node:fs';
+import { dirname, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import sharp from 'sharp';
+
+const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
+const logo = readFileSync(resolve(root, 'static/favicon.svg'), 'utf8');
+const out = (name) => resolve(root, 'static', name);
+mkdirSync(out('icons'), { recursive: true });
+
+// The artwork is everything after the background <rect>; its fill is the brand dark
+const background = logo.match(/<rect[^>]*fill="([^"]+)"/)[1];
+const artwork = logo.slice(
+	logo.indexOf('/>', logo.indexOf('<rect')) + 2,
+	logo.lastIndexOf('</svg>')
+);
+
+/** Square SVG with a full-bleed background and the artwork scaled around the centre. */
+const fullBleed = (scale) =>
+	Buffer.from(
+		`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">` +
+			`<rect width="64" height="64" fill="${background}"/>` +
+			`<g transform="translate(32 32) scale(${scale}) translate(-32 -32)">${artwork}</g></svg>`
+	);
+
+// density: rasterise the 64-unit SVG at high resolution before resizing, so edges stay sharp
+const render = (svg, size) => sharp(svg, { density: 1200 }).resize(size, size).png();
+
+await render(Buffer.from(logo), 192).toFile(out('icons/icon-192.png'));
+await render(Buffer.from(logo), 512).toFile(out('icons/icon-512.png'));
+// safe zone = central circle with 80% of the diameter; 0.8 keeps the tags inside it
+await render(fullBleed(0.8), 512).toFile(out('icons/maskable-512.png'));
+await render(fullBleed(0.9), 180).toFile(out('apple-touch-icon.png'));
+
+console.log('icone aggiornate: icon-192, icon-512, maskable-512, apple-touch-icon');
