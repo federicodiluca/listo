@@ -67,6 +67,7 @@ export function mergeSnapshots(local: Snapshot, remote: Snapshot, now: string): 
 	const lists = mergeTable(local.lists, remote.lists);
 	const categories = mergeTable(local.categories, remote.categories);
 	const items = mergeTable(local.items, remote.items);
+	const fields = mergeTable(local.fields, remote.fields);
 
 	const deletedLists = new Map(
 		lists.merged.filter((l) => l.deletedAt).map((l) => [l.id, l.deletedAt])
@@ -82,10 +83,22 @@ export function mergeSnapshots(local: Snapshot, remote: Snapshot, now: string): 
 	};
 	cascade(categories);
 	cascade(items);
+	cascade(fields);
 
 	return {
-		merged: { lists: lists.merged, categories: categories.merged, items: items.merged },
-		toLocal: { lists: lists.toLocal, categories: categories.toLocal, items: items.toLocal },
-		remoteChanged: lists.remoteChanged || categories.remoteChanged || items.remoteChanged
+		merged: {
+			lists: lists.merged,
+			categories: categories.merged,
+			items: items.merged,
+			fields: fields.merged
+		},
+		toLocal: {
+			lists: lists.toLocal,
+			categories: categories.toLocal,
+			items: items.toLocal,
+			fields: fields.toLocal
+		},
+		remoteChanged:
+			lists.remoteChanged || categories.remoteChanged || items.remoteChanged || fields.remoteChanged
 	};
 }

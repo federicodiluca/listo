@@ -62,7 +62,7 @@ function saveSettings(settings: Settings) {
 /** Most recent change in the local database, tombstones included. */
 async function latestLocalChange(): Promise<string> {
 	let latest = '';
-	for (const table of [db.lists, db.categories, db.items] as const) {
+	for (const table of [db.lists, db.categories, db.items, db.fields] as const) {
 		await table.each((record) => {
 			if (record.updatedAt > latest) latest = record.updatedAt;
 		});
@@ -76,7 +76,7 @@ async function openDataFile(token: AccessToken): Promise<Spreadsheet> {
 	if (existing) return existing;
 	const created = await createSpreadsheet(token, 'Listo', Object.values(TABS));
 	await markAsDataFile(token, created.id);
-	await writeTabs(token, created.id, toSheet({ lists: [], categories: [], items: [] }));
+	await writeTabs(token, created.id, toSheet({ lists: [], categories: [], items: [], fields: [] }));
 	return created;
 }
 

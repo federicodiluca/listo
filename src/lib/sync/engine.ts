@@ -1,5 +1,5 @@
 import type { ListoDatabase } from '$lib/data/db';
-import type { Category, Item, List, SyncedRecord } from '$lib/data/types';
+import type { Category, Field, Item, List, SyncedRecord } from '$lib/data/types';
 import { FORMAT_VERSION, fromSheet, toSheet, type Snapshot } from './format';
 import { mergeSnapshots, newer } from './merge';
 
@@ -35,12 +35,13 @@ export type SyncResult = {
 
 /** Everything in the local database, tombstones included. */
 async function readLocal(db: ListoDatabase): Promise<Snapshot> {
-	const [lists, categories, items] = await Promise.all([
+	const [lists, categories, items, fields] = await Promise.all([
 		db.lists.toArray(),
 		db.categories.toArray(),
-		db.items.toArray()
+		db.items.toArray(),
+		db.fields.toArray()
 	]);
-	return { lists, categories, items };
+	return { lists, categories, items, fields };
 }
 
 /**
@@ -50,7 +51,7 @@ async function readLocal(db: ListoDatabase): Promise<Snapshot> {
  */
 async function applyLocal(db: ListoDatabase, incoming: Snapshot): Promise<number> {
 	let written = 0;
-	await db.transaction('rw', db.lists, db.categories, db.items, async () => {
+	await db.transaction('rw', [db.lists, db.categories, db.items, db.fields], async () => {
 		const apply = async <T extends SyncedRecord>(
 			table: { get(id: string): PromiseLike<T | undefined>; put(record: T): PromiseLike<unknown> },
 			records: T[]
@@ -66,6 +67,7 @@ async function applyLocal(db: ListoDatabase, incoming: Snapshot): Promise<number
 		await apply<List>(db.lists, incoming.lists);
 		await apply<Category>(db.categories, incoming.categories);
 		await apply<Item>(db.items, incoming.items);
+		await apply<Field>(db.fields, incoming.fields);
 	});
 	return written;
 }
@@ -95,9 +97,11 @@ export async function syncOnce(
 		);
 		await store.write(toSheet(merged), counts);
 	}
-	const syncedUpTo = [...merged.lists, ...merged.categories, ...merged.items].reduce(
-		(latest, r) => (r.updatedAt > latest ? r.updatedAt : latest),
-		''
-	);
+	const syncedUpTo = [
+		...merged.lists,
+		...merged.categories,
+		...merged.items,
+		...merged.fields
+	].reduce((latest, r) => (r.updatedAt > latest ? r.updatedAt : latest), '');
 	return { received, sent, skipped, syncedUpTo };
 }

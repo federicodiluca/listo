@@ -3,7 +3,7 @@ import { category, item, list, T0, T1, T2 } from './fixtures';
 import type { Snapshot } from './format';
 import { mergeSnapshots, mergeTable, newer } from './merge';
 
-const empty: Snapshot = { lists: [], categories: [], items: [] };
+const empty: Snapshot = { lists: [], categories: [], items: [], fields: [] };
 const NOW = '2026-09-28T12:00:00.000Z';
 
 describe('newer', () => {
@@ -84,12 +84,14 @@ describe('mergeSnapshots', () => {
 		const phone: Snapshot = {
 			lists: [list('l')],
 			categories: [category('c', 'l')],
-			items: [item('late', 'l', { createdAt: T2, updatedAt: T2 })]
+			items: [item('late', 'l', { createdAt: T2, updatedAt: T2 })],
+			fields: []
 		};
 		const sheet: Snapshot = {
 			lists: [list('l', { deletedAt: T1, updatedAt: T1 })],
 			categories: [category('c', 'l', { deletedAt: T1, updatedAt: T1 })],
-			items: []
+			items: [],
+			fields: []
 		};
 		const { merged, toLocal, remoteChanged } = mergeSnapshots(phone, sheet, NOW);
 		expect(merged.lists[0].deletedAt).toBe(T1);
@@ -102,12 +104,14 @@ describe('mergeSnapshots', () => {
 		const phone: Snapshot = {
 			lists: [list('l', { name: 'Congelatore', updatedAt: T2 })],
 			categories: [category('c', 'l')],
-			items: [item('i', 'l', { quantity: 1, updatedAt: T1 })]
+			items: [item('i', 'l', { quantity: 1, updatedAt: T1 })],
+			fields: []
 		};
 		const sheet: Snapshot = {
 			lists: [list('l', { name: 'Freezer', updatedAt: T1 })],
 			categories: [],
-			items: [item('i', 'l', { quantity: 4, updatedAt: T2 }), item('j', 'l', { updatedAt: T0 })]
+			items: [item('i', 'l', { quantity: 4, updatedAt: T2 }), item('j', 'l', { updatedAt: T0 })],
+			fields: []
 		};
 		const first = mergeSnapshots(phone, sheet, NOW).merged;
 		const again = mergeSnapshots(first, first, NOW);

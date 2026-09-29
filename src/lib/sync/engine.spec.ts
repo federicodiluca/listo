@@ -2,7 +2,7 @@ import 'fake-indexeddb/auto';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { ListoDatabase } from '$lib/data/db';
 import { NewerFormatError, syncOnce, type SheetStore } from './engine';
-import { item, list, T1, T2 } from './fixtures';
+import { field, item, list, T1, T2 } from './fixtures';
 import { TABS } from './format';
 
 /** The Google Sheet, simulated in memory, with a write counter. */
@@ -43,6 +43,18 @@ describe('syncOnce between two devices', () => {
 
 		expect((await phone.lists.get('freezer'))?.name).toBe('Congelatore');
 		expect((await phone.items.get('soup'))?.name).toBe('Minestrone');
+	});
+
+	it('brings custom fields and their values to the other device', async () => {
+		await pc.lists.add(list('l'));
+		await pc.fields.add(field('keeps', 'l'));
+		await pc.items.add(item('soup', 'l', { extra: { keeps: { amount: 3, unit: 'months' } } }));
+		await syncOnce(pc, sheet);
+		await syncOnce(phone, sheet);
+		expect((await phone.fields.get('keeps'))?.type).toBe('duration');
+		expect((await phone.items.get('soup'))?.extra).toEqual({
+			keeps: { amount: 3, unit: 'months' }
+		});
 	});
 
 	it('merges offline edits from both sides, newest edit per item wins', async () => {
