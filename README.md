@@ -2,7 +2,7 @@
 
 Liste personalizzabili in cui ogni elemento può stare in più categorie contemporaneamente.
 
-**[listo.federicodiluca.com](https://listo.federicodiluca.com/)** — in costruzione.
+**[listo.federicodiluca.com](https://listo.federicodiluca.com/)** — app web installabile, gratuita, senza account.
 
 Nasce da un problema concreto: l'inventario del congelatore su Google Keep, dove il
 minestrone pronto non può stare sia sotto "verdure" sia sotto "piatti pronti". Listo
@@ -11,7 +11,8 @@ non è un inventario fisso: ognuno crea le proprie liste e le proprie categorie.
 Ogni lista può avere anche **campi su misura** (data, durata, numero, testo, sì/no): una
 data o una durata possono fare da scadenza, e Listo evidenzia, ordina e filtra ciò che sta
 per scadere. Ci sono modelli pronti per congelatore, dispensa, spesa, medicinali, garage,
-ufficio, libri e cose da fare.
+ufficio, libri e cose da fare. Gli elementi si possono vedere raggruppati per categoria
+oppure in un unico elenco: è un'impostazione della singola lista.
 
 ## Come funziona
 
@@ -30,8 +31,12 @@ ufficio, libri e cose da fare.
   (`src/service-worker.ts`) tiene in cache l'app: il codice con hash dalla cache, le
   pagine dalla rete con un limite di 3 secondi e poi dalla cache. Con i dati già in
   IndexedDB, l'app si apre e si usa anche senza rete.
-- **Landing pre-renderizzata, app lato client.** Le pagine pubbliche sono HTML statico
-  indicizzabile; l'area `/app` gira solo nel browser ed è esclusa dall'indicizzazione.
+- **Consiglia Listo.** Nella pagina Account un'immagine pronta per le storie di Instagram,
+  passata al menu di condivisione del telefono (o scaricata, dove non si possono condividere file).
+- **Landing pre-renderizzata, app lato client.** Le pagine pubbliche (home, casi d'uso
+  congelatore, dispensa e lista della spesa, privacy) sono HTML statico indicizzabile con
+  sitemap e dati strutturati; l'area `/app` gira solo nel browser ed è esclusa
+  dall'indicizzazione.
 
 ## Sviluppo
 
@@ -45,9 +50,23 @@ npm run check    # controllo dei tipi (svelte-check)
 npm run lint     # Prettier + ESLint
 npm run build    # sito statico in build/
 npm run icons:build  # rigenera le icone PNG da static/favicon.svg
+npm run story:build  # rigenera static/story.png, l'immagine per le storie di Instagram
 ```
 
-Stack: SvelteKit (Svelte 5) con `adapter-static`, TypeScript, Tailwind CSS, Vitest.
+Stack: SvelteKit (Svelte 5) con `adapter-static`, TypeScript, Tailwind CSS, Dexie
+(IndexedDB), Vitest.
+
+```text
+src/
+  routes/(sito)/  pagine pubbliche pre-renderizzate: home, casi d'uso, privacy
+  routes/app/     l'app: liste, elementi, categorie, impostazioni, account
+  lib/data/       modello e database locale (Dexie): liste, elementi, campi, modelli
+  lib/sync/       motore di sincronizzazione: unione record per record
+  lib/google/     accesso Google, Drive e Sheets
+  lib/seo/        meta tag e dati strutturati
+  lib/ui/         componenti dell'app · lib/site-ui/ componenti del sito
+  service-worker.ts
+```
 
 ### Credenziali Google
 
