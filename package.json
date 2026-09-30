@@ -16,7 +16,8 @@
 		"format": "prettier --write .",
 		"test:unit": "vitest",
 		"test": "npm run test:unit -- --run",
-		"icons:build": "node scripts/build-icons.mjs"
+		"icons:build": "node scripts/build-icons.mjs",
+		"story:build": "node scripts/build-story.mjs"
 	},
 	"devDependencies": {
 		"@eslint/js": "^10.0.1",

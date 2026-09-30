@@ -9,6 +9,7 @@
 	import { installer } from '$lib/install.svelte';
 	import Icon from '$lib/ui/Icon.svelte';
 	import InstallButton from '$lib/ui/InstallButton.svelte';
+	import ShareApp from '$lib/ui/ShareApp.svelte';
 	import { onMount } from 'svelte';
 
 	// Load Google's script now, so that the popup can open right away on tap
@@ -147,6 +148,8 @@
 			<InstallButton class="{button} mt-4 w-full border border-line" />
 		</section>
 	{/if}
+
+	<ShareApp {button} />
 
 	<section class="border-t border-line pt-6 text-sm text-muted">
 		<p>
